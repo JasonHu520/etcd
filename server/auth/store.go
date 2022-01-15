@@ -188,7 +188,6 @@ type TokenProvider interface {
 	assign(ctx context.Context, username string, revision uint64) (string, error)
 	enable()
 	disable()
-
 	invalidateUser(string)
 	genTokenPrefix() (string, error)
 }
@@ -197,7 +196,6 @@ type AuthBackend interface {
 	CreateAuthBuckets()
 	ForceCommit()
 	BatchTx() AuthBatchTx
-
 	GetUser(string) *authpb.User
 	GetAllUsers() []*authpb.User
 	GetRole(string) *authpb.Role
@@ -1035,7 +1033,7 @@ func (as *authStore) AuthInfoFromCtx(ctx context.Context) (*AuthInfo, error) {
 		return nil, nil
 	}
 
-	//TODO(mitake|hexfusion) review unifying key names
+	// TODO(mitake|hexfusion) review unifying key names
 	ts, ok := md[rpctypes.TokenFieldNameGRPC]
 	if !ok {
 		ts, ok = md[rpctypes.TokenFieldNameSwagger]
@@ -1088,7 +1086,6 @@ func decomposeOpts(lg *zap.Logger, optstr string) (string, map[string]string, er
 	}
 
 	return tokenType, typeSpecificOpts, nil
-
 }
 
 // NewTokenProvider creates a new token provider.

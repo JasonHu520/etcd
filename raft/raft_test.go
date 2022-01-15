@@ -302,9 +302,11 @@ func testLeaderElection(t *testing.T, preVote bool) {
 
 		// three logs further along than 0, but in the same term so rejections
 		// are returned instead of the votes being ignored.
-		{newNetworkWithConfig(cfg,
-			nil, entsWithConfig(cfg, 1), entsWithConfig(cfg, 1), entsWithConfig(cfg, 1, 1), nil),
-			StateFollower, 1},
+		{
+			newNetworkWithConfig(cfg,
+				nil, entsWithConfig(cfg, 1), entsWithConfig(cfg, 1), entsWithConfig(cfg, 1, 1), nil),
+			StateFollower, 1,
+		},
 	}
 
 	for i, tt := range tests {
@@ -1004,8 +1006,10 @@ func TestOldMessages(t *testing.T) {
 	ilog := &raftLog{
 		storage: &MemoryStorage{
 			ents: []pb.Entry{
-				{}, {Data: nil, Term: 1, Index: 1},
-				{Data: nil, Term: 2, Index: 2}, {Data: nil, Term: 3, Index: 3},
+				{},
+				{Data: nil, Term: 1, Index: 1},
+				{Data: nil, Term: 2, Index: 2},
+				{Data: nil, Term: 3, Index: 3},
 				{Data: []byte("somedata"), Term: 3, Index: 4},
 			},
 		},
@@ -1066,7 +1070,8 @@ func TestProposal(t *testing.T) {
 					ents: []pb.Entry{{}, {Data: nil, Term: 1, Index: 1}, {Term: 1, Index: 2, Data: data}},
 				},
 				unstable:  unstable{offset: 3},
-				committed: 2}
+				committed: 2,
+			}
 		}
 		base := ltoa(wantLog)
 		for i, p := range tt.peers {
@@ -1105,7 +1110,8 @@ func TestProposalByProxy(t *testing.T) {
 				ents: []pb.Entry{{}, {Data: nil, Term: 1, Index: 1}, {Term: 1, Data: data, Index: 2}},
 			},
 			unstable:  unstable{offset: 3},
-			committed: 2}
+			committed: 2,
+		}
 		base := ltoa(wantLog)
 		for i, p := range tt.peers {
 			if sm, ok := p.(*raft); ok {

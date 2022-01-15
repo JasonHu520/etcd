@@ -33,10 +33,12 @@ import (
 	"go.uber.org/zap"
 )
 
-var from string
-var to string
-var httpPort int
-var verbose bool
+var (
+	from     string
+	to       string
+	httpPort int
+	verbose  bool
+)
 
 func main() {
 	// TODO: support TLS

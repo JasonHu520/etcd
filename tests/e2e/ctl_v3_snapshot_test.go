@@ -99,6 +99,7 @@ func snapshotCorruptTest(cx ctlCtx) {
 
 // This test ensures that the snapshot status does not modify the snapshot file
 func TestCtlV3SnapshotStatusBeforeRestore(t *testing.T) { testCtl(t, snapshotStatusBeforeRestoreTest) }
+
 func TestCtlV3SnapshotStatusBeforeRestoreEtcdutl(t *testing.T) {
 	testCtl(t, snapshotStatusBeforeRestoreTest, withEtcdutl())
 }
@@ -265,10 +266,12 @@ func testIssue6361(t *testing.T, etcdutl bool) {
 	t.Log("Starting the new member")
 	// start the new member
 	var nepc *expect.ExpectProcess
-	nepc, err = e2e.SpawnCmd([]string{epc.Procs[0].Config().ExecPath, "--name", name2,
+	nepc, err = e2e.SpawnCmd([]string{
+		epc.Procs[0].Config().ExecPath, "--name", name2,
 		"--listen-client-urls", clientURL, "--advertise-client-urls", clientURL,
 		"--listen-peer-urls", peerURL, "--initial-advertise-peer-urls", peerURL,
-		"--initial-cluster", initialCluster2, "--initial-cluster-state", "existing", "--data-dir", newDataDir2}, nil)
+		"--initial-cluster", initialCluster2, "--initial-cluster-state", "existing", "--data-dir", newDataDir2,
+	}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -297,6 +300,7 @@ func testIssue6361(t *testing.T, etcdutl bool) {
 func TestCtlV3SnapshotVersion(t *testing.T) {
 	testCtl(t, snapshotVersionTest, withCfg(e2e.EtcdProcessClusterConfig{SnapshotCount: 1}))
 }
+
 func TestCtlV3SnapshotVersionEtcdutl(t *testing.T) {
 	testCtl(t, snapshotVersionTest, withEtcdutl(), withCfg(e2e.EtcdProcessClusterConfig{SnapshotCount: 1}))
 }

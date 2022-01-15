@@ -202,7 +202,6 @@ func TestFirstCommitNotification(t *testing.T) {
 	}
 
 	_, err := oldLeaderClient.MoveLeader(context.Background(), newLeaderId)
-
 	if err != nil {
 		t.Errorf("got error during leadership transfer: %v", err)
 	}

@@ -291,7 +291,8 @@ type raft struct {
 	// number of ticks since it reached last heartbeatTimeout.
 	// only leader keeps heartbeatElapsed.
 	heartbeatElapsed int
-
+	// 是从 leader 角度判断自己是否合法；
+	// leader 每隔 election timeout 检查其他节点的活跃情况，若少于 majority 活跃，则自动 step down 为 follower。
 	checkQuorum bool
 	preVote     bool
 
@@ -479,6 +480,7 @@ func (r *raft) maybeSendAppend(to uint64, sendIfEmpty bool) bool {
 			case tracker.StateReplicate:
 				last := m.Entries[n-1].Index
 				pr.OptimisticUpdate(last)
+				// 加入缓冲区
 				pr.Inflights.Add(last)
 			case tracker.StateProbe:
 				pr.ProbeSent = true
@@ -513,6 +515,8 @@ func (r *raft) sendHeartbeat(to uint64, ctx []byte) {
 // bcastAppend sends RPC, with entries to all peers that are not up-to-date
 // according to the progress recorded in r.prs.
 func (r *raft) bcastAppend() {
+	// 主节点对其他节点进行广播
+	// visit 用来对id进行排序
 	r.prs.Visit(func(id uint64, _ *tracker.Progress) {
 		if id == r.id {
 			return
@@ -642,6 +646,7 @@ func (r *raft) appendEntry(es ...pb.Entry) (accepted bool) {
 }
 
 // tickElection is run by followers and candidates after r.electionTimeout.
+// 对于 follower 和 candidate 而言，tick 中会判断是否超时，若超时则会本地生成一个 MsgHup 类型的消息触发 leader election:
 func (r *raft) tickElection() {
 	r.electionElapsed++
 
@@ -657,7 +662,8 @@ func (r *raft) tickElection() {
 func (r *raft) tickHeartbeat() {
 	r.heartbeatElapsed++
 	r.electionElapsed++
-
+	// leader 每隔 election timeout 检查其他节点的活跃情况，若少于 majority 活跃，则自动 step down 为 follower。
+	// 通过通信来判断节点活跃情况，在每次 check quorum 时清理，只要在下次 check quorum 之前有通信就是活跃的。
 	if r.electionElapsed >= r.electionTimeout {
 		r.electionElapsed = 0
 		if r.checkQuorum {
@@ -686,6 +692,7 @@ func (r *raft) tickHeartbeat() {
 func (r *raft) becomeFollower(term uint64, lead uint64) {
 	r.step = stepFollower
 	r.reset(term)
+	//启用选举
 	r.tick = r.tickElection
 	r.lead = lead
 	r.state = StateFollower
@@ -706,6 +713,8 @@ func (r *raft) becomeCandidate() {
 }
 
 func (r *raft) becomePreCandidate() {
+	// follower 首先变为 preCandidate，不会增加自己的 term
+	// Pre-Vote 和正常投票流程相同，但是其他节点收到 Pre-Vote 消息时不会改变自己的状态，且可以给多个 Pre-Vote 的 candidate 投票:
 	// TODO(xiangli) remove the panic when the raft implementation is stable
 	if r.state == StateLeader {
 		panic("invalid transition [leader -> pre-candidate]")
@@ -840,7 +849,9 @@ func (r *raft) poll(id uint64, t pb.MessageType, v bool) (granted int, rejected 
 	} else {
 		r.logger.Infof("%x received %s rejection from %x at term %d", r.id, t, id, r.Term)
 	}
+	// 记录投票
 	r.prs.RecordVote(id, v)
+	// 返回投票结果
 	return r.prs.TallyVotes()
 }
 
@@ -854,6 +865,7 @@ func (r *raft) Step(m pb.Message) error {
 			force := bytes.Equal(m.Context, []byte(campaignTransfer))
 			inLease := r.checkQuorum && r.lead != None && r.electionElapsed < r.electionTimeout
 			if !force && inLease {
+				//todo 当节点在 election timeout 时间内接收到了 leader 的消息，就不会改变自己的 term 也不会给其他节点投票。
 				// If a server receives a RequestVote request within the minimum election timeout
 				// of hearing from a current leader, it does not update its term or grant its vote
 				r.logger.Infof("%x [logterm: %d, index: %d, vote: %x] ignored %s from %x [logterm: %d, index: %d] at term %d: lease is not expired (remaining ticks: %d)",
@@ -905,6 +917,9 @@ func (r *raft) Step(m pb.Message) error {
 			// fresh election. This can be prevented with Pre-Vote phase.
 			r.send(pb.Message{To: m.From, Type: pb.MsgAppResp})
 		} else if m.Type == pb.MsgPreVote {
+			// 心得体会： 当节点在预选成功但是正式选时被网络分区，此时其他节点选了新的主节点
+			// 当网络恢复时，被分区的节点由于预选不会成功，因为新的集群已经写入新的日志，
+			// 但是该节点不会接受leader的消息导致这个节点不会stable，此时收到的预选消息应该被拒绝，让节点明白时过境迁，有了新的主了
 			// Before Pre-Vote enable, there may have candidate with higher term,
 			// but less log. After update to Pre-Vote, the cluster may deadlock if
 			// we drop messages with a lower term.
@@ -921,6 +936,8 @@ func (r *raft) Step(m pb.Message) error {
 
 	switch m.Type {
 	case pb.MsgHup:
+		// 只有收到 majority 的投票，才会增加 term 进行正常的选举过程；
+		// 若 Pre-Vote 失败，当网络恢复后，该节点收到 leader 的消息重新成为 follower，避免了 disrupt 集群。
 		if r.preVote {
 			r.hup(campaignPreElection)
 		} else {
@@ -1397,17 +1414,18 @@ func stepCandidate(r *raft, m pb.Message) error {
 		r.becomeFollower(m.Term, m.From) // always m.Term == r.Term
 		r.handleSnapshot(m)
 	case myVoteRespType:
+		// 统计投票信息，给自己投票
 		gr, rj, res := r.poll(m.From, m.Type, !m.Reject)
 		r.logger.Infof("%x has received %d %s votes and %d vote rejections", r.id, gr, m.Type, rj)
 		switch res {
-		case quorum.VoteWon:
+		case quorum.VoteWon: // 收到 quorum 的投票
 			if r.state == StatePreCandidate {
 				r.campaign(campaignElection)
 			} else {
 				r.becomeLeader()
 				r.bcastAppend()
 			}
-		case quorum.VoteLost:
+		case quorum.VoteLost: // 收到 quorum 的拒绝
 			// pb.MsgPreVoteResp contains future term of pre-candidate
 			// m.Term > r.Term; reuse r.Term
 			r.becomeFollower(r.Term, None)
@@ -1596,7 +1614,6 @@ func (r *raft) restore(s pb.Snapshot) bool {
 		Tracker:   r.prs,
 		LastIndex: r.raftLog.lastIndex(),
 	}, cs)
-
 	if err != nil {
 		// This should never happen. Either there's a bug in our config change
 		// handling or the client corrupted the conf change.
@@ -1633,7 +1650,6 @@ func (r *raft) applyConfChange(cc pb.ConfChangeV2) pb.ConfState {
 		}
 		return changer.Simple(cc.Changes...)
 	}()
-
 	if err != nil {
 		// TODO(tbg): return the error to the caller.
 		panic(err)

@@ -16,6 +16,7 @@ package schema
 
 import (
 	"encoding/binary"
+
 	"go.etcd.io/etcd/server/v3/storage/backend"
 )
 

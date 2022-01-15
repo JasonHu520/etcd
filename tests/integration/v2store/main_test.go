@@ -20,7 +20,7 @@ import (
 	"go.etcd.io/etcd/client/pkg/v3/testutil"
 )
 
-//var endpoints []string
+// var endpoints []string
 
 func TestMain(m *testing.M) {
 	//cfg := integration.ClusterConfig{Size: 1}

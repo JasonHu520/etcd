@@ -70,11 +70,14 @@ func TestDoLocalAction(t *testing.T) {
 	}{
 		{
 			pb.Request{Method: "GET", ID: 1, Wait: true},
-			Response{Watcher: v2store.NewNopWatcher()}, nil, []testutil.Action{{Name: "Watch"}},
+			Response{Watcher: v2store.NewNopWatcher()},
+			nil,
+			[]testutil.Action{{Name: "Watch"}},
 		},
 		{
 			pb.Request{Method: "GET", ID: 1},
-			Response{Event: &v2store.Event{}}, nil,
+			Response{Event: &v2store.Event{}},
+			nil,
 			[]testutil.Action{
 				{
 					Name:   "Get",
@@ -84,7 +87,8 @@ func TestDoLocalAction(t *testing.T) {
 		},
 		{
 			pb.Request{Method: "HEAD", ID: 1},
-			Response{Event: &v2store.Event{}}, nil,
+			Response{Event: &v2store.Event{}},
+			nil,
 			[]testutil.Action{
 				{
 					Name:   "Get",
@@ -94,7 +98,9 @@ func TestDoLocalAction(t *testing.T) {
 		},
 		{
 			pb.Request{Method: "BADMETHOD", ID: 1},
-			Response{}, ErrUnknownMethod, []testutil.Action{},
+			Response{},
+			ErrUnknownMethod,
+			[]testutil.Action{},
 		},
 	}
 	for i, tt := range tests {
@@ -757,7 +763,8 @@ func TestApplyMultiConfChangeShouldStop(t *testing.T) {
 			Data: pbutil.MustMarshal(
 				&raftpb.ConfChange{
 					Type:   raftpb.ConfChangeRemoveNode,
-					NodeID: uint64(i)}),
+					NodeID: uint64(i),
+				}),
 		}
 		ents = append(ents, ent)
 	}
@@ -1093,7 +1100,7 @@ func TestSnapshotOrdering(t *testing.T) {
 	defer os.RemoveAll(testdir)
 
 	snapdir := filepath.Join(testdir, "member", "snap")
-	if err := os.MkdirAll(snapdir, 0755); err != nil {
+	if err := os.MkdirAll(snapdir, 0o755); err != nil {
 		t.Fatalf("couldn't make snap dir (%v)", err)
 	}
 
@@ -1247,7 +1254,7 @@ func TestConcurrentApplyAndSnapshotV3(t *testing.T) {
 		t.Fatalf("Couldn't open tempdir (%v)", err)
 	}
 	defer os.RemoveAll(testdir)
-	if err := os.MkdirAll(testdir+"/member/snap", 0755); err != nil {
+	if err := os.MkdirAll(testdir+"/member/snap", 0o755); err != nil {
 		t.Fatalf("Couldn't make snap dir (%v)", err)
 	}
 
@@ -1638,7 +1645,8 @@ func TestPublishV3(t *testing.T) {
 		t.Fatalf("unmarshal request error: %v", err)
 	}
 	assert.Equal(t, &membershippb.ClusterMemberAttrSetRequest{Member_ID: 0x1, MemberAttributes: &membershippb.Attributes{
-		Name: "node1", ClientUrls: []string{"http://a", "http://b"}}}, r.ClusterMemberAttrSet)
+		Name: "node1", ClientUrls: []string{"http://a", "http://b"},
+	}}, r.ClusterMemberAttrSet)
 }
 
 // TestPublishStopped tests that publish will be stopped if server is stopped.
@@ -1841,14 +1849,17 @@ func (n *nodeRecorder) Campaign(ctx context.Context) error {
 	n.Record(testutil.Action{Name: "Campaign"})
 	return nil
 }
+
 func (n *nodeRecorder) Propose(ctx context.Context, data []byte) error {
 	n.Record(testutil.Action{Name: "Propose", Params: []interface{}{data}})
 	return nil
 }
+
 func (n *nodeRecorder) ProposeConfChange(ctx context.Context, conf raftpb.ConfChangeI) error {
 	n.Record(testutil.Action{Name: "ProposeConfChange"})
 	return nil
 }
+
 func (n *nodeRecorder) Step(ctx context.Context, msg raftpb.Message) error {
 	n.Record(testutil.Action{Name: "Step"})
 	return nil
@@ -1898,8 +1909,10 @@ type readyNode struct {
 func newReadyNode() *readyNode {
 	return &readyNode{
 		nodeRecorder{testutil.NewRecorderStream()},
-		make(chan raft.Ready, 1)}
+		make(chan raft.Ready, 1),
+	}
 }
+
 func newNopReadyNode() *readyNode {
 	return &readyNode{*newNodeRecorder(), make(chan raft.Ready, 1)}
 }
@@ -1945,9 +1958,11 @@ func (n *nodeConfChangeCommitterRecorder) ProposeConfChange(ctx context.Context,
 	n.readyc <- raft.Ready{CommittedEntries: []raftpb.Entry{{Index: n.index, Type: typ, Data: data}}}
 	return nil
 }
+
 func (n *nodeConfChangeCommitterRecorder) Ready() <-chan raft.Ready {
 	return n.readyc
 }
+
 func (n *nodeConfChangeCommitterRecorder) ApplyConfChange(conf raftpb.ConfChangeI) *raftpb.ConfState {
 	n.Record(testutil.Action{Name: "ApplyConfChange:" + confChangeActionName(conf)})
 	return &raftpb.ConfState{}
@@ -1962,6 +1977,7 @@ type nodeCommitter struct {
 func newNodeCommitter() raft.Node {
 	return &nodeCommitter{*newNopReadyNode(), 0}
 }
+
 func (n *nodeCommitter) Propose(ctx context.Context, data []byte) error {
 	n.index++
 	ents := []raftpb.Entry{{Index: n.index, Data: data}}

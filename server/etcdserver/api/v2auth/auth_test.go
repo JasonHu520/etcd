@@ -369,8 +369,7 @@ func TestEnsure(t *testing.T) {
 	}
 }
 
-type fastPasswordStore struct {
-}
+type fastPasswordStore struct{}
 
 func (fastPasswordStore) CheckPassword(user User, password string) bool {
 	return user.Password == password

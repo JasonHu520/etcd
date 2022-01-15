@@ -47,9 +47,7 @@ type LazyCluster interface {
 
 	// Transport - call to this method might initialize the cluster.
 	Transport() *http.Transport
-
 	Terminate()
-
 	TB() testutil.TB
 }
 

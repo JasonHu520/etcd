@@ -24,9 +24,7 @@ import (
 	"go.etcd.io/etcd/pkg/v3/cobrautl"
 )
 
-var (
-	defragDataDir string
-)
+var defragDataDir string
 
 // NewDefragCommand returns the cobra command for "Defrag".
 func NewDefragCommand() *cobra.Command {

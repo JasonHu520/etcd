@@ -37,7 +37,8 @@ func createV2store(t testing.TB, dataDirPath string) {
 	for i := 0; i < 10; i++ {
 		if err := e2e.CURLPut(epc, e2e.CURLReq{
 			Endpoint: "/v2/keys/foo", Value: "bar" + fmt.Sprint(i),
-			Expected: `{"action":"set","node":{"key":"/foo","value":"bar` + fmt.Sprint(i)}); err != nil {
+			Expected: `{"action":"set","node":{"key":"/foo","value":"bar` + fmt.Sprint(i),
+		}); err != nil {
 			t.Fatalf("failed put with curl (%v)", err)
 		}
 	}
@@ -56,10 +57,10 @@ func assertVerifyCanStartV2deprecationNotYet(t testing.TB, dataDirPath string) {
 
 	if err := e2e.CURLGet(epc, e2e.CURLReq{
 		Endpoint: "/v2/keys/foo",
-		Expected: `{"action":"get","node":{"key":"/foo","value":"bar9","modifiedIndex":13,"createdIndex":13}}`}); err != nil {
+		Expected: `{"action":"get","node":{"key":"/foo","value":"bar9","modifiedIndex":13,"createdIndex":13}}`,
+	}); err != nil {
 		t.Fatalf("failed get with curl (%v)", err)
 	}
-
 }
 
 func assertVerifyCannotStartV2deprecationWriteOnly(t testing.TB, dataDirPath string) {
@@ -86,7 +87,6 @@ func TestV2Deprecation(t *testing.T) {
 	t.Run("--v2-deprecation=not-yet succeeds", func(t *testing.T) {
 		assertVerifyCanStartV2deprecationNotYet(t, dataDirPath)
 	})
-
 }
 
 func TestV2DeprecationWriteOnlyNoV2Api(t *testing.T) {

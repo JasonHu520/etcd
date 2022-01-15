@@ -69,7 +69,6 @@ func testMutexLock(t *testing.T, waiters int, chooseClient func() *clientv3.Clie
 			case lockedC <- m:
 			case <-stopC:
 			}
-
 		}()
 	}
 	// unlock locked mutexes

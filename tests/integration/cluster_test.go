@@ -113,7 +113,8 @@ func TestTLSClusterOf3UsingDiscovery(t *testing.T) {
 		&integration.ClusterConfig{
 			Size:         3,
 			PeerTLS:      &integration.TestTLSInfo,
-			DiscoveryURL: dc.URL(0) + "/v2/keys"},
+			DiscoveryURL: dc.URL(0) + "/v2/keys",
+		},
 	)
 	c.Launch(t)
 	defer c.Terminate(t)

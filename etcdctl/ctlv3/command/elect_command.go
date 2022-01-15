@@ -28,9 +28,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	electListen bool
-)
+var electListen bool
 
 // NewElectCommand returns the cobra command for "elect".
 func NewElectCommand() *cobra.Command {

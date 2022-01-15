@@ -23,15 +23,19 @@ import (
 func TestCtlV3TxnInteractiveSuccess(t *testing.T) {
 	testCtl(t, txnTestSuccess, withInteractive())
 }
+
 func TestCtlV3TxnInteractiveSuccessNoTLS(t *testing.T) {
 	testCtl(t, txnTestSuccess, withInteractive(), withCfg(*e2e.NewConfigNoTLS()))
 }
+
 func TestCtlV3TxnInteractiveSuccessClientTLS(t *testing.T) {
 	testCtl(t, txnTestSuccess, withInteractive(), withCfg(*e2e.NewConfigClientTLS()))
 }
+
 func TestCtlV3TxnInteractiveSuccessPeerTLS(t *testing.T) {
 	testCtl(t, txnTestSuccess, withInteractive(), withCfg(*e2e.NewConfigPeerTLS()))
 }
+
 func TestCtlV3TxnInteractiveFail(t *testing.T) {
 	testCtl(t, txnTestFail, withInteractive())
 }

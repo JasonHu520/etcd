@@ -28,9 +28,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var (
-	leaseTTL int64
-)
+var leaseTTL int64
 
 // NewLeaseRenewerCommand returns the cobra command for "lease-renewer runner".
 func NewLeaseRenewerCommand() *cobra.Command {

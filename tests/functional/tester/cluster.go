@@ -533,7 +533,7 @@ func (clus *Cluster) sendOpWithResp(idx int, op rpcpb.Operation) (*rpcpb.Respons
 			return nil, fmt.Errorf("got empty client cert from %q", m.EtcdClientEndpoint)
 		}
 		clientCertPath := filepath.Join(dirClient, "cert.pem")
-		if err = os.WriteFile(clientCertPath, clientCertData, 0644); err != nil { // overwrite if exists
+		if err = os.WriteFile(clientCertPath, clientCertData, 0o644); err != nil { // overwrite if exists
 			return nil, err
 		}
 		resp.Member.ClientCertPath = clientCertPath
@@ -547,7 +547,7 @@ func (clus *Cluster) sendOpWithResp(idx int, op rpcpb.Operation) (*rpcpb.Respons
 			return nil, fmt.Errorf("got empty client key from %q", m.EtcdClientEndpoint)
 		}
 		clientKeyPath := filepath.Join(dirClient, "key.pem")
-		if err = os.WriteFile(clientKeyPath, clientKeyData, 0644); err != nil { // overwrite if exists
+		if err = os.WriteFile(clientKeyPath, clientKeyData, 0o644); err != nil { // overwrite if exists
 			return nil, err
 		}
 		resp.Member.ClientKeyPath = clientKeyPath
@@ -560,7 +560,7 @@ func (clus *Cluster) sendOpWithResp(idx int, op rpcpb.Operation) (*rpcpb.Respons
 		if len(clientTrustedCAData) != 0 {
 			// TODO: disable this when auto TLS is deprecated
 			clientTrustedCAPath := filepath.Join(dirClient, "ca.pem")
-			if err = os.WriteFile(clientTrustedCAPath, clientTrustedCAData, 0644); err != nil { // overwrite if exists
+			if err = os.WriteFile(clientTrustedCAPath, clientTrustedCAData, 0o644); err != nil { // overwrite if exists
 				return nil, err
 			}
 			resp.Member.ClientTrustedCAPath = clientTrustedCAPath

@@ -25,9 +25,7 @@ import (
 	"go.etcd.io/etcd/pkg/v3/cobrautl"
 )
 
-var (
-	userShowDetail bool
-)
+var userShowDetail bool
 
 // NewUserCommand returns the cobra command for "user".
 func NewUserCommand() *cobra.Command {

@@ -50,7 +50,6 @@ type Backend interface {
 	BatchTx() BatchTx
 	// ConcurrentReadTx returns a non-blocking read transaction.
 	ConcurrentReadTx() ReadTx
-
 	Snapshot() Snapshot
 	Hash(ignores func(bucketName, keyName []byte) bool) (uint32, error)
 	// Size returns the current size of the backend physically allocated.
@@ -176,7 +175,7 @@ func newBackend(bcfg BackendConfig) *backend {
 	bopts.NoGrowSync = bcfg.UnsafeNoFsync
 	bopts.Mlock = bcfg.Mlock
 
-	db, err := bolt.Open(bcfg.Path, 0600, bopts)
+	db, err := bolt.Open(bcfg.Path, 0o600, bopts)
 	if err != nil {
 		bcfg.Logger.Panic("failed to open database", zap.String("path", bcfg.Path), zap.Error(err))
 	}
@@ -380,7 +379,6 @@ func (b *backend) Hash(ignores func(bucketName, keyName []byte) bool) (uint32, e
 		}
 		return nil
 	})
-
 	if err != nil {
 		return 0, err
 	}
@@ -469,7 +467,7 @@ func (b *backend) defrag() error {
 	// Don't load tmp db into memory regardless of opening options
 	options.Mlock = false
 	tdbp := temp.Name()
-	tmpdb, err := bolt.Open(tdbp, 0600, &options)
+	tmpdb, err := bolt.Open(tdbp, 0o600, &options)
 	if err != nil {
 		return err
 	}
@@ -516,7 +514,7 @@ func (b *backend) defrag() error {
 	}
 	defragmentedBoltOptions.Mlock = b.mlock
 
-	b.db, err = bolt.Open(dbp, 0600, &defragmentedBoltOptions)
+	b.db, err = bolt.Open(dbp, 0o600, &defragmentedBoltOptions)
 	if err != nil {
 		b.lg.Fatal("failed to open database", zap.String("path", dbp), zap.Error(err))
 	}

@@ -32,7 +32,8 @@ const (
 var lazyCluster = integration.NewLazyClusterWithConfig(
 	integration2.ClusterConfig{
 		Size:                        3,
-		WatchProgressNotifyInterval: 200 * time.Millisecond})
+		WatchProgressNotifyInterval: 200 * time.Millisecond,
+	})
 
 func exampleEndpoints() []string { return lazyCluster.EndpointsV3() }
 

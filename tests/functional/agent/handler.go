@@ -310,7 +310,7 @@ func (srv *Server) saveTLSAssets() error {
 		if srv.Member.PeerCertData == "" {
 			return fmt.Errorf("got empty data for %q", srv.Member.PeerCertPath)
 		}
-		if err := os.WriteFile(srv.Member.PeerCertPath, []byte(srv.Member.PeerCertData), 0644); err != nil {
+		if err := os.WriteFile(srv.Member.PeerCertPath, []byte(srv.Member.PeerCertData), 0o644); err != nil {
 			return err
 		}
 	}
@@ -318,7 +318,7 @@ func (srv *Server) saveTLSAssets() error {
 		if srv.Member.PeerKeyData == "" {
 			return fmt.Errorf("got empty data for %q", srv.Member.PeerKeyPath)
 		}
-		if err := os.WriteFile(srv.Member.PeerKeyPath, []byte(srv.Member.PeerKeyData), 0644); err != nil {
+		if err := os.WriteFile(srv.Member.PeerKeyPath, []byte(srv.Member.PeerKeyData), 0o644); err != nil {
 			return err
 		}
 	}
@@ -326,7 +326,7 @@ func (srv *Server) saveTLSAssets() error {
 		if srv.Member.PeerTrustedCAData == "" {
 			return fmt.Errorf("got empty data for %q", srv.Member.PeerTrustedCAPath)
 		}
-		if err := os.WriteFile(srv.Member.PeerTrustedCAPath, []byte(srv.Member.PeerTrustedCAData), 0644); err != nil {
+		if err := os.WriteFile(srv.Member.PeerTrustedCAPath, []byte(srv.Member.PeerTrustedCAData), 0o644); err != nil {
 			return err
 		}
 	}
@@ -345,7 +345,7 @@ func (srv *Server) saveTLSAssets() error {
 		if srv.Member.ClientCertData == "" {
 			return fmt.Errorf("got empty data for %q", srv.Member.ClientCertPath)
 		}
-		if err := os.WriteFile(srv.Member.ClientCertPath, []byte(srv.Member.ClientCertData), 0644); err != nil {
+		if err := os.WriteFile(srv.Member.ClientCertPath, []byte(srv.Member.ClientCertData), 0o644); err != nil {
 			return err
 		}
 	}
@@ -353,7 +353,7 @@ func (srv *Server) saveTLSAssets() error {
 		if srv.Member.ClientKeyData == "" {
 			return fmt.Errorf("got empty data for %q", srv.Member.ClientKeyPath)
 		}
-		if err := os.WriteFile(srv.Member.ClientKeyPath, []byte(srv.Member.ClientKeyData), 0644); err != nil {
+		if err := os.WriteFile(srv.Member.ClientKeyPath, []byte(srv.Member.ClientKeyData), 0o644); err != nil {
 			return err
 		}
 	}
@@ -361,7 +361,7 @@ func (srv *Server) saveTLSAssets() error {
 		if srv.Member.ClientTrustedCAData == "" {
 			return fmt.Errorf("got empty data for %q", srv.Member.ClientTrustedCAPath)
 		}
-		if err := os.WriteFile(srv.Member.ClientTrustedCAPath, []byte(srv.Member.ClientTrustedCAData), 0644); err != nil {
+		if err := os.WriteFile(srv.Member.ClientTrustedCAPath, []byte(srv.Member.ClientTrustedCAData), 0o644); err != nil {
 			return err
 		}
 	}

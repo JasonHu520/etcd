@@ -35,7 +35,7 @@ func compactTest(cx ctlCtx) {
 		cx.t.Fatalf("expected '...future revision' error, got <nil>")
 	}
 
-	var kvs = []kv{{"key", "val1"}, {"key", "val2"}, {"key", "val3"}}
+	kvs := []kv{{"key", "val1"}, {"key", "val2"}, {"key", "val3"}}
 	for i := range kvs {
 		if err := ctlV3Put(cx, kvs[i].key, kvs[i].val, ""); err != nil {
 			cx.t.Fatalf("compactTest #%d: ctlV3Put error (%v)", i, err)

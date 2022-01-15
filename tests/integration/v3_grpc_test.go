@@ -250,9 +250,10 @@ func TestV3TxnTooManyOps(t *testing.T) {
 		newTxn := &pb.TxnRequest{}
 		addSuccessOps(newTxn)
 		txn.Success = append(txn.Success,
-			&pb.RequestOp{Request: &pb.RequestOp_RequestTxn{
-				RequestTxn: newTxn,
-			},
+			&pb.RequestOp{
+				Request: &pb.RequestOp_RequestTxn{
+					RequestTxn: newTxn,
+				},
 			},
 		)
 	}
@@ -283,44 +284,53 @@ func TestV3TxnDuplicateKeys(t *testing.T) {
 	defer clus.Terminate(t)
 
 	putreq := &pb.RequestOp{Request: &pb.RequestOp_RequestPut{RequestPut: &pb.PutRequest{Key: []byte("abc"), Value: []byte("def")}}}
-	delKeyReq := &pb.RequestOp{Request: &pb.RequestOp_RequestDeleteRange{
-		RequestDeleteRange: &pb.DeleteRangeRequest{
-			Key: []byte("abc"),
+	delKeyReq := &pb.RequestOp{
+		Request: &pb.RequestOp_RequestDeleteRange{
+			RequestDeleteRange: &pb.DeleteRangeRequest{
+				Key: []byte("abc"),
+			},
 		},
-	},
 	}
-	delInRangeReq := &pb.RequestOp{Request: &pb.RequestOp_RequestDeleteRange{
-		RequestDeleteRange: &pb.DeleteRangeRequest{
-			Key: []byte("a"), RangeEnd: []byte("b"),
+	delInRangeReq := &pb.RequestOp{
+		Request: &pb.RequestOp_RequestDeleteRange{
+			RequestDeleteRange: &pb.DeleteRangeRequest{
+				Key: []byte("a"), RangeEnd: []byte("b"),
+			},
 		},
-	},
 	}
-	delOutOfRangeReq := &pb.RequestOp{Request: &pb.RequestOp_RequestDeleteRange{
-		RequestDeleteRange: &pb.DeleteRangeRequest{
-			Key: []byte("abb"), RangeEnd: []byte("abc"),
+	delOutOfRangeReq := &pb.RequestOp{
+		Request: &pb.RequestOp_RequestDeleteRange{
+			RequestDeleteRange: &pb.DeleteRangeRequest{
+				Key: []byte("abb"), RangeEnd: []byte("abc"),
+			},
 		},
-	},
 	}
-	txnDelReq := &pb.RequestOp{Request: &pb.RequestOp_RequestTxn{
-		RequestTxn: &pb.TxnRequest{Success: []*pb.RequestOp{delInRangeReq}},
-	},
+	txnDelReq := &pb.RequestOp{
+		Request: &pb.RequestOp_RequestTxn{
+			RequestTxn: &pb.TxnRequest{Success: []*pb.RequestOp{delInRangeReq}},
+		},
 	}
-	txnDelReqTwoSide := &pb.RequestOp{Request: &pb.RequestOp_RequestTxn{
-		RequestTxn: &pb.TxnRequest{
-			Success: []*pb.RequestOp{delInRangeReq},
-			Failure: []*pb.RequestOp{delInRangeReq}},
-	},
+	txnDelReqTwoSide := &pb.RequestOp{
+		Request: &pb.RequestOp_RequestTxn{
+			RequestTxn: &pb.TxnRequest{
+				Success: []*pb.RequestOp{delInRangeReq},
+				Failure: []*pb.RequestOp{delInRangeReq},
+			},
+		},
 	}
 
-	txnPutReq := &pb.RequestOp{Request: &pb.RequestOp_RequestTxn{
-		RequestTxn: &pb.TxnRequest{Success: []*pb.RequestOp{putreq}},
-	},
+	txnPutReq := &pb.RequestOp{
+		Request: &pb.RequestOp_RequestTxn{
+			RequestTxn: &pb.TxnRequest{Success: []*pb.RequestOp{putreq}},
+		},
 	}
-	txnPutReqTwoSide := &pb.RequestOp{Request: &pb.RequestOp_RequestTxn{
-		RequestTxn: &pb.TxnRequest{
-			Success: []*pb.RequestOp{putreq},
-			Failure: []*pb.RequestOp{putreq}},
-	},
+	txnPutReqTwoSide := &pb.RequestOp{
+		Request: &pb.RequestOp_RequestTxn{
+			RequestTxn: &pb.TxnRequest{
+				Success: []*pb.RequestOp{putreq},
+				Failure: []*pb.RequestOp{putreq},
+			},
+		},
 	}
 
 	kvc := integration.ToGRPC(clus.RandClient()).KV
@@ -470,7 +480,8 @@ func TestV3TxnCmpHeaderRev(t *testing.T) {
 
 		// The read-only txn uses the optimized readindex server path.
 		txnget := &pb.RequestOp{Request: &pb.RequestOp_RequestRange{
-			RequestRange: &pb.RangeRequest{Key: []byte("k")}}}
+			RequestRange: &pb.RangeRequest{Key: []byte("k")},
+		}}
 		txn := &pb.TxnRequest{Success: []*pb.RequestOp{txnget}}
 		// i = 0 /\ Succeeded => put followed txn
 		cmp := &pb.Compare{
@@ -708,7 +719,8 @@ func TestV3PutIgnoreValue(t *testing.T) {
 				preq.IgnoreValue = true
 				txn := &pb.TxnRequest{}
 				txn.Success = append(txn.Success, &pb.RequestOp{
-					Request: &pb.RequestOp_RequestPut{RequestPut: &preq}})
+					Request: &pb.RequestOp_RequestPut{RequestPut: &preq},
+				})
 				_, err := kvc.Txn(context.TODO(), txn)
 				return err
 			},
@@ -731,7 +743,8 @@ func TestV3PutIgnoreValue(t *testing.T) {
 				preq.IgnoreValue = true
 				txn := &pb.TxnRequest{}
 				txn.Success = append(txn.Success, &pb.RequestOp{
-					Request: &pb.RequestOp_RequestPut{RequestPut: &preq}})
+					Request: &pb.RequestOp_RequestPut{RequestPut: &preq},
+				})
 				_, err := kvc.Txn(context.TODO(), txn)
 				return err
 			},
@@ -843,7 +856,8 @@ func TestV3PutIgnoreLease(t *testing.T) {
 				preq.IgnoreLease = true
 				txn := &pb.TxnRequest{}
 				txn.Success = append(txn.Success, &pb.RequestOp{
-					Request: &pb.RequestOp_RequestPut{RequestPut: &preq}})
+					Request: &pb.RequestOp_RequestPut{RequestPut: &preq},
+				})
 				_, err := kvc.Txn(context.TODO(), txn)
 				return err
 			},
@@ -869,7 +883,8 @@ func TestV3PutIgnoreLease(t *testing.T) {
 				preq.IgnoreLease = true
 				txn := &pb.TxnRequest{}
 				txn.Success = append(txn.Success, &pb.RequestOp{
-					Request: &pb.RequestOp_RequestPut{RequestPut: &preq}})
+					Request: &pb.RequestOp_RequestPut{RequestPut: &preq},
+				})
 				_, err := kvc.Txn(context.TODO(), txn)
 				return err
 			},
@@ -959,7 +974,9 @@ func TestV3PutMissingLease(t *testing.T) {
 			txn := &pb.TxnRequest{}
 			txn.Success = append(txn.Success, &pb.RequestOp{
 				Request: &pb.RequestOp_RequestPut{
-					RequestPut: preq}})
+					RequestPut: preq,
+				},
+			})
 			if tresp, err := kvc.Txn(context.TODO(), txn); err == nil {
 				t.Errorf("succeeded txn success. req: %v. resp: %v", txn, tresp)
 			}
@@ -969,7 +986,9 @@ func TestV3PutMissingLease(t *testing.T) {
 			txn := &pb.TxnRequest{}
 			txn.Failure = append(txn.Failure, &pb.RequestOp{
 				Request: &pb.RequestOp_RequestPut{
-					RequestPut: preq}})
+					RequestPut: preq,
+				},
+			})
 			cmp := &pb.Compare{
 				Result: pb.Compare_GREATER,
 				Target: pb.Compare_CREATE,
@@ -986,10 +1005,14 @@ func TestV3PutMissingLease(t *testing.T) {
 			rreq := &pb.RangeRequest{Key: []byte("bar")}
 			txn.Success = append(txn.Success, &pb.RequestOp{
 				Request: &pb.RequestOp_RequestRange{
-					RequestRange: rreq}})
+					RequestRange: rreq,
+				},
+			})
 			txn.Failure = append(txn.Failure, &pb.RequestOp{
 				Request: &pb.RequestOp_RequestPut{
-					RequestPut: preq}})
+					RequestPut: preq,
+				},
+			})
 			if tresp, err := kvc.Txn(context.TODO(), txn); err != nil {
 				t.Errorf("failed good txn. req: %v. resp: %v", txn, tresp)
 			}
@@ -1027,43 +1050,50 @@ func TestV3DeleteRange(t *testing.T) {
 			"delete middle",
 			[]string{"foo", "foo/abc", "fop"},
 			"foo/", "fop", false,
-			[][]byte{[]byte("foo"), []byte("fop")}, 1,
+			[][]byte{[]byte("foo"), []byte("fop")},
+			1,
 		},
 		{
 			"no delete",
 			[]string{"foo", "foo/abc", "fop"},
 			"foo/", "foo/", false,
-			[][]byte{[]byte("foo"), []byte("foo/abc"), []byte("fop")}, 0,
+			[][]byte{[]byte("foo"), []byte("foo/abc"), []byte("fop")},
+			0,
 		},
 		{
 			"delete first",
 			[]string{"foo", "foo/abc", "fop"},
 			"fo", "fop", false,
-			[][]byte{[]byte("fop")}, 2,
+			[][]byte{[]byte("fop")},
+			2,
 		},
 		{
 			"delete tail",
 			[]string{"foo", "foo/abc", "fop"},
 			"foo/", "fos", false,
-			[][]byte{[]byte("foo")}, 2,
+			[][]byte{[]byte("foo")},
+			2,
 		},
 		{
 			"delete exact",
 			[]string{"foo", "foo/abc", "fop"},
 			"foo/abc", "", false,
-			[][]byte{[]byte("foo"), []byte("fop")}, 1,
+			[][]byte{[]byte("foo"), []byte("fop")},
+			1,
 		},
 		{
 			"delete none [x,x)",
 			[]string{"foo"},
 			"foo", "foo", false,
-			[][]byte{[]byte("foo")}, 0,
+			[][]byte{[]byte("foo")},
+			0,
 		},
 		{
 			"delete middle with preserveKVs set",
 			[]string{"foo", "foo/abc", "fop"},
 			"foo/", "fop", true,
-			[][]byte{[]byte("foo"), []byte("fop")}, 1,
+			[][]byte{[]byte("foo"), []byte("fop")},
+			1,
 		},
 	}
 
@@ -1146,12 +1176,16 @@ func TestV3TxnInvalidRange(t *testing.T) {
 	txn := &pb.TxnRequest{}
 	txn.Success = append(txn.Success, &pb.RequestOp{
 		Request: &pb.RequestOp_RequestPut{
-			RequestPut: preq}})
+			RequestPut: preq,
+		},
+	})
 
 	rreq := &pb.RangeRequest{Key: []byte("foo"), Revision: 100}
 	txn.Success = append(txn.Success, &pb.RequestOp{
 		Request: &pb.RequestOp_RequestRange{
-			RequestRange: rreq}})
+			RequestRange: rreq,
+		},
+	})
 
 	if _, err := kvc.Txn(context.TODO(), txn); !eqErrGRPC(err, rpctypes.ErrGRPCFutureRev) {
 		t.Errorf("err = %v, want %v", err, rpctypes.ErrGRPCFutureRev)
@@ -1954,7 +1988,6 @@ func TestV3LargeRequests(t *testing.T) {
 					t.Errorf("#%d: range expected no error, got %v", i, err)
 				}
 			}
-
 		})
 	}
 }

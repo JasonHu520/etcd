@@ -146,6 +146,7 @@ func ctlV3RoleMultiExpect(cx ctlCtx, args []string, expStr ...string) error {
 
 	return e2e.SpawnWithExpects(cmdArgs, cx.envMap, expStr...)
 }
+
 func ctlV3Role(cx ctlCtx, args []string, expStr string) error {
 	cmdArgs := append(cx.PrefixArgs(), "role")
 	cmdArgs = append(cmdArgs, args...)

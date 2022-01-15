@@ -26,9 +26,7 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-var (
-	V4_0 = semver.Version{Major: 4, Minor: 0}
-)
+var V4_0 = semver.Version{Major: 4, Minor: 0}
 
 func TestNewPlan(t *testing.T) {
 	tcs := []struct {

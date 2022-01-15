@@ -32,9 +32,7 @@ import (
 
 const noOutputLineCount = 2 // cov-enabled binaries emit PASS and coverage count lines
 
-var (
-	coverDir = integration.MustAbsPath(os.Getenv("COVERDIR"))
-)
+var coverDir = integration.MustAbsPath(os.Getenv("COVERDIR"))
 
 func SpawnCmd(args []string) (*expect.ExpectProcess, error) {
 	return SpawnCmdWithLogger(zap.NewNop(), args)

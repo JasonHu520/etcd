@@ -33,7 +33,6 @@ type index interface {
 	Compact(rev int64) map[revision]struct{}
 	Keep(rev int64) map[revision]struct{}
 	Equal(b index) bool
-
 	Insert(ki *keyIndex)
 	KeyIndex(ki *keyIndex) *keyIndex
 }

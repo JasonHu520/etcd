@@ -113,7 +113,7 @@ func UnsafeDetectSchemaVersion(lg *zap.Logger, tx backend.ReadTx) (v semver.Vers
 
 func schemaChangesForVersion(v semver.Version, isUpgrade bool) ([]schemaChange, error) {
 	// changes should be taken from higher version
-	var higherV = v
+	higherV := v
 	if isUpgrade {
 		higherV = semver.Version{Major: v.Major, Minor: v.Minor + 1}
 	}

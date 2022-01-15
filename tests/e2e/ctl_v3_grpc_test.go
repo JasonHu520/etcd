@@ -108,7 +108,6 @@ func TestAuthority(t *testing.T) {
 					assertAuthority(t, fmt.Sprintf(tc.expectAuthorityPattern, 20000), epc)
 				})
 			})
-
 		}
 	}
 }

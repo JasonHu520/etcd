@@ -20,15 +20,13 @@ import (
 	pb "go.etcd.io/etcd/raft/v3/raftpb"
 )
 
-var (
-	testingSnap = pb.Snapshot{
-		Metadata: pb.SnapshotMetadata{
-			Index:     11, // magic number
-			Term:      11, // magic number
-			ConfState: pb.ConfState{Voters: []uint64{1, 2}},
-		},
-	}
-)
+var testingSnap = pb.Snapshot{
+	Metadata: pb.SnapshotMetadata{
+		Index:     11, // magic number
+		Term:      11, // magic number
+		ConfState: pb.ConfState{Voters: []uint64{1, 2}},
+	},
+}
 
 func TestSendingSnapshotSetPendingSnapshot(t *testing.T) {
 	storage := newTestMemoryStorage(withPeers(1))

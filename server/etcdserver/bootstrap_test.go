@@ -20,17 +20,18 @@ package etcdserver
 import (
 	"encoding/json"
 	"fmt"
-	bolt "go.etcd.io/bbolt"
-	"go.etcd.io/etcd/server/v3/storage/datadir"
-	"go.etcd.io/etcd/server/v3/storage/schema"
-	"go.etcd.io/etcd/server/v3/storage/wal"
-	"go.etcd.io/etcd/server/v3/storage/wal/walpb"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	bolt "go.etcd.io/bbolt"
+	"go.etcd.io/etcd/server/v3/storage/datadir"
+	"go.etcd.io/etcd/server/v3/storage/schema"
+	"go.etcd.io/etcd/server/v3/storage/wal"
+	"go.etcd.io/etcd/server/v3/storage/wal/walpb"
 
 	"go.etcd.io/etcd/api/v3/etcdserverpb"
 	"go.etcd.io/etcd/api/v3/version"
@@ -219,12 +220,12 @@ func createDataDir(t *testing.T) (dataDir string, err error) {
 	dataDir = t.TempDir()
 
 	// create ${dataDir}/member/snap
-	if err = os.MkdirAll(datadir.ToSnapDir(dataDir), 0700); err != nil {
+	if err = os.MkdirAll(datadir.ToSnapDir(dataDir), 0o700); err != nil {
 		return
 	}
 
 	// create ${dataDir}/member/wal
-	err = os.MkdirAll(datadir.ToWalDir(dataDir), 0700)
+	err = os.MkdirAll(datadir.ToWalDir(dataDir), 0o700)
 
 	return
 }

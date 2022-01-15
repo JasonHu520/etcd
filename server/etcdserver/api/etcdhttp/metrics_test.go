@@ -36,6 +36,7 @@ func (s *fakeServerV2) Leader() types.ID {
 	}
 	return types.ID(raft.None)
 }
+
 func (s *fakeServerV2) Do(ctx context.Context, r pb.Request) (etcdserver.Response, error) {
 	if s.health == "true" {
 		return etcdserver.Response{}, nil

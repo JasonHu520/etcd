@@ -30,13 +30,11 @@ const (
 	defaultDialTimeout = 2 * time.Second
 )
 
-var (
-	rootCmd = &cobra.Command{
-		Use:        cliName,
-		Short:      cliDescription,
-		SuggestFor: []string{"etcd-runner"},
-	}
-)
+var rootCmd = &cobra.Command{
+	Use:        cliName,
+	Short:      cliDescription,
+	SuggestFor: []string{"etcd-runner"},
+}
 
 func init() {
 	cobra.EnablePrefixMatching = true

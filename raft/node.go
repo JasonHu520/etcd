@@ -17,6 +17,7 @@ package raft
 import (
 	"context"
 	"errors"
+	"log"
 
 	pb "go.etcd.io/etcd/raft/v3/raftpb"
 )
@@ -501,6 +502,7 @@ func (n *node) stepWithWaitOption(ctx context.Context, m pb.Message, wait bool) 
 func (n *node) Ready() <-chan Ready { return n.readyc }
 
 func (n *node) Advance() {
+	log.Println("...Advance...")
 	select {
 	case n.advancec <- struct{}{}:
 	case <-n.done:

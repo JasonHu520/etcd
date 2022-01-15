@@ -39,7 +39,8 @@ const (
 )
 
 func NewConfigNoTLS() *EtcdProcessClusterConfig {
-	return &EtcdProcessClusterConfig{ClusterSize: 3,
+	return &EtcdProcessClusterConfig{
+		ClusterSize:  3,
 		InitialToken: "new",
 	}
 }

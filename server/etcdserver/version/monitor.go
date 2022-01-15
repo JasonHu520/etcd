@@ -37,7 +37,6 @@ type Server interface {
 	LinearizableReadNotify(ctx context.Context) error
 	DowngradeEnable(ctx context.Context, targetVersion *semver.Version) error
 	DowngradeCancel(ctx context.Context) error
-
 	GetStorageVersion() *semver.Version
 	UpdateStorageVersion(semver.Version) error
 }

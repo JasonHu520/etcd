@@ -112,7 +112,7 @@ func TestVersionSnapshot(t *testing.T) {
 			tx.Unlock()
 			be.ForceCommit()
 			be.Close()
-			db, err := bbolt.Open(tmpPath, 0400, &bbolt.Options{ReadOnly: true})
+			db, err := bbolt.Open(tmpPath, 0o400, &bbolt.Options{ReadOnly: true})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -127,7 +127,6 @@ func TestVersionSnapshot(t *testing.T) {
 			}
 
 			assert.Equal(t, tc.expectVersion, ver.String())
-
 		})
 	}
 }

@@ -35,9 +35,11 @@ func TestCtlV3UserListNoTLS(t *testing.T) { testCtl(t, userListTest, withCfg(*e2
 func TestCtlV3UserListClientTLS(t *testing.T) {
 	testCtl(t, userListTest, withCfg(*e2e.NewConfigClientTLS()))
 }
+
 func TestCtlV3UserListPeerTLS(t *testing.T) {
 	testCtl(t, userListTest, withCfg(*e2e.NewConfigPeerTLS()))
 }
+
 func TestCtlV3UserListClientAutoTLS(t *testing.T) {
 	testCtl(t, userListTest, withCfg(*e2e.NewConfigClientAutoTLS()))
 }
@@ -46,9 +48,11 @@ func TestCtlV3UserDeleteNoTLS(t *testing.T) { testCtl(t, userDelTest, withCfg(*e
 func TestCtlV3UserDeleteClientTLS(t *testing.T) {
 	testCtl(t, userDelTest, withCfg(*e2e.NewConfigClientTLS()))
 }
+
 func TestCtlV3UserDeletePeerTLS(t *testing.T) {
 	testCtl(t, userDelTest, withCfg(*e2e.NewConfigPeerTLS()))
 }
+
 func TestCtlV3UserDeleteClientAutoTLS(t *testing.T) {
 	testCtl(t, userDelTest, withCfg(*e2e.NewConfigClientAutoTLS()))
 }
@@ -56,12 +60,15 @@ func TestCtlV3UserPasswd(t *testing.T) { testCtl(t, userPasswdTest) }
 func TestCtlV3UserPasswdNoTLS(t *testing.T) {
 	testCtl(t, userPasswdTest, withCfg(*e2e.NewConfigNoTLS()))
 }
+
 func TestCtlV3UserPasswdClientTLS(t *testing.T) {
 	testCtl(t, userPasswdTest, withCfg(*e2e.NewConfigClientTLS()))
 }
+
 func TestCtlV3UserPasswdPeerTLS(t *testing.T) {
 	testCtl(t, userPasswdTest, withCfg(*e2e.NewConfigPeerTLS()))
 }
+
 func TestCtlV3UserPasswdClientAutoTLS(t *testing.T) {
 	testCtl(t, userPasswdTest, withCfg(*e2e.NewConfigClientAutoTLS()))
 }

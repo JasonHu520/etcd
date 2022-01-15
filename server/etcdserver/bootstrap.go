@@ -49,7 +49,6 @@ import (
 )
 
 func bootstrap(cfg config.ServerConfig) (b *bootstrappedServer, err error) {
-
 	if cfg.MaxRequestBytes > recommendedMaxRequestBytes {
 		cfg.Logger.Warn(
 			"exceeded recommended request limit",
@@ -79,9 +78,7 @@ func bootstrap(cfg config.ServerConfig) (b *bootstrappedServer, err error) {
 	if err != nil {
 		return nil, err
 	}
-	var (
-		bwal *bootstrappedWAL
-	)
+	var bwal *bootstrappedWAL
 
 	if haveWAL {
 		if err = fileutil.IsDirWriteable(cfg.WALDir()); err != nil {

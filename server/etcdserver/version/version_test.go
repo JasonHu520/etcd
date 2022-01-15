@@ -28,9 +28,7 @@ import (
 	"go.etcd.io/etcd/api/v3/version"
 )
 
-var (
-	V3_7 = semver.Version{Major: 3, Minor: 7}
-)
+var V3_7 = semver.Version{Major: 3, Minor: 7}
 
 func TestUpgradeSingleNode(t *testing.T) {
 	lg := zaptest.NewLogger(t)

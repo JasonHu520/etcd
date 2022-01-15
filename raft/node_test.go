@@ -107,7 +107,7 @@ func TestNodeStepUnblock(t *testing.T) {
 			if err != tt.werr {
 				t.Errorf("#%d: err = %v, want %v", i, err, tt.werr)
 			}
-			//clean up side-effect
+			// clean up side-effect
 			if ctx.Err() != nil {
 				ctx = context.TODO()
 			}
@@ -225,7 +225,7 @@ func TestDisableProposalForwarding(t *testing.T) {
 	// elect r1 as leader
 	nt.send(raftpb.Message{From: 1, To: 1, Type: raftpb.MsgHup})
 
-	var testEntries = []raftpb.Entry{{Data: []byte("testdata")}}
+	testEntries := []raftpb.Entry{{Data: []byte("testdata")}}
 
 	// send proposal to r2(follower) where DisableProposalForwarding is false
 	r2.Step(raftpb.Message{From: 2, To: 2, Type: raftpb.MsgProp, Entries: testEntries})
@@ -256,7 +256,7 @@ func TestNodeReadIndexToOldLeader(t *testing.T) {
 	// elect r1 as leader
 	nt.send(raftpb.Message{From: 1, To: 1, Type: raftpb.MsgHup})
 
-	var testEntries = []raftpb.Entry{{Data: []byte("testdata")}}
+	testEntries := []raftpb.Entry{{Data: []byte("testdata")}}
 
 	// send readindex request to r2(follower)
 	r2.Step(raftpb.Message{From: 2, To: 2, Type: raftpb.MsgReadIndex, Entries: testEntries})

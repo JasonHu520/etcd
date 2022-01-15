@@ -46,7 +46,9 @@ func TestV3WatchFromCurrentRevision(t *testing.T) {
 			[]string{"foo"},
 			&pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 				CreateRequest: &pb.WatchCreateRequest{
-					Key: []byte("foo")}}},
+					Key: []byte("foo"),
+				},
+			}},
 
 			[]*pb.WatchResponse{
 				{
@@ -66,7 +68,9 @@ func TestV3WatchFromCurrentRevision(t *testing.T) {
 			[]string{"foo"},
 			&pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 				CreateRequest: &pb.WatchCreateRequest{
-					Key: []byte("helloworld")}}},
+					Key: []byte("helloworld"),
+				},
+			}},
 
 			[]*pb.WatchResponse{},
 		},
@@ -76,7 +80,9 @@ func TestV3WatchFromCurrentRevision(t *testing.T) {
 			&pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 				CreateRequest: &pb.WatchCreateRequest{
 					Key:      []byte("foo"),
-					RangeEnd: []byte("fop")}}},
+					RangeEnd: []byte("fop"),
+				},
+			}},
 
 			[]*pb.WatchResponse{
 				{
@@ -97,7 +103,9 @@ func TestV3WatchFromCurrentRevision(t *testing.T) {
 			&pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 				CreateRequest: &pb.WatchCreateRequest{
 					Key:      []byte("helloworld"),
-					RangeEnd: []byte("helloworle")}}},
+					RangeEnd: []byte("helloworle"),
+				},
+			}},
 
 			[]*pb.WatchResponse{},
 		},
@@ -107,7 +115,9 @@ func TestV3WatchFromCurrentRevision(t *testing.T) {
 			&pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 				CreateRequest: &pb.WatchCreateRequest{
 					Key:      []byte(""),
-					RangeEnd: []byte("\x00")}}},
+					RangeEnd: []byte("\x00"),
+				},
+			}},
 
 			[]*pb.WatchResponse{
 				{
@@ -127,7 +137,9 @@ func TestV3WatchFromCurrentRevision(t *testing.T) {
 			[]string{"foo", "foo", "foo"},
 			&pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 				CreateRequest: &pb.WatchCreateRequest{
-					Key: []byte("foo")}}},
+					Key: []byte("foo"),
+				},
+			}},
 
 			[]*pb.WatchResponse{
 				{
@@ -168,7 +180,9 @@ func TestV3WatchFromCurrentRevision(t *testing.T) {
 			&pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 				CreateRequest: &pb.WatchCreateRequest{
 					Key:      []byte("foo"),
-					RangeEnd: []byte("fop")}}},
+					RangeEnd: []byte("fop"),
+				},
+			}},
 
 			[]*pb.WatchResponse{
 				{
@@ -308,7 +322,8 @@ func TestV3WatchFutureRevision(t *testing.T) {
 	wkey := []byte("foo")
 	wrev := int64(10)
 	req := &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
-		CreateRequest: &pb.WatchCreateRequest{Key: wkey, StartRevision: wrev}}}
+		CreateRequest: &pb.WatchCreateRequest{Key: wkey, StartRevision: wrev},
+	}}
 	err = wStream.Send(req)
 	if err != nil {
 		t.Fatalf("wStream.Send error: %v", err)
@@ -377,7 +392,8 @@ func TestV3WatchWrongRange(t *testing.T) {
 	}
 	for i, tt := range tests {
 		if err := wStream.Send(&pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
-			CreateRequest: &pb.WatchCreateRequest{Key: tt.key, RangeEnd: tt.end, StartRevision: 1}}}); err != nil {
+			CreateRequest: &pb.WatchCreateRequest{Key: tt.key, RangeEnd: tt.end, StartRevision: 1},
+		}}); err != nil {
 			t.Fatalf("#%d: wStream.Send error: %v", i, err)
 		}
 		cresp, err := wStream.Recv()
@@ -421,7 +437,9 @@ func testV3WatchCancel(t *testing.T, startRev int64) {
 
 	wreq := &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 		CreateRequest: &pb.WatchCreateRequest{
-			Key: []byte("foo"), StartRevision: startRev}}}
+			Key: []byte("foo"), StartRevision: startRev,
+		},
+	}}
 	if err := wStream.Send(wreq); err != nil {
 		t.Fatalf("wStream.Send error: %v", err)
 	}
@@ -436,7 +454,9 @@ func testV3WatchCancel(t *testing.T, startRev int64) {
 
 	creq := &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CancelRequest{
 		CancelRequest: &pb.WatchCancelRequest{
-			WatchId: wresp.WatchId}}}
+			WatchId: wresp.WatchId,
+		},
+	}}
 	if err := wStream.Send(creq); err != nil {
 		t.Fatalf("wStream.Send error: %v", err)
 	}
@@ -495,7 +515,8 @@ func TestV3WatchCurrentPutOverlap(t *testing.T) {
 	progress := make(map[int64]int64)
 
 	wreq := &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
-		CreateRequest: &pb.WatchCreateRequest{Key: []byte("foo"), RangeEnd: []byte("fop")}}}
+		CreateRequest: &pb.WatchCreateRequest{Key: []byte("foo"), RangeEnd: []byte("fop")},
+	}}
 	if err := wStream.Send(wreq); err != nil {
 		t.Fatalf("first watch request failed (%v)", err)
 	}
@@ -562,7 +583,9 @@ func TestV3WatchEmptyKey(t *testing.T) {
 	}
 	req := &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 		CreateRequest: &pb.WatchCreateRequest{
-			Key: []byte("foo")}}}
+			Key: []byte("foo"),
+		},
+	}}
 	if err := ws.Send(req); err != nil {
 		t.Fatal(err)
 	}
@@ -626,11 +649,15 @@ func testV3WatchMultipleWatchers(t *testing.T, startRev int64) {
 		if i < watchKeyN {
 			wreq = &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 				CreateRequest: &pb.WatchCreateRequest{
-					Key: []byte("foo"), StartRevision: startRev}}}
+					Key: []byte("foo"), StartRevision: startRev,
+				},
+			}}
 		} else {
 			wreq = &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 				CreateRequest: &pb.WatchCreateRequest{
-					Key: []byte("fo"), RangeEnd: []byte("fp"), StartRevision: startRev}}}
+					Key: []byte("fo"), RangeEnd: []byte("fp"), StartRevision: startRev,
+				},
+			}}
 		}
 		if err := wStream.Send(wreq); err != nil {
 			t.Fatalf("wStream.Send error: %v", err)
@@ -722,7 +749,9 @@ func testV3WatchMultipleEventsTxn(t *testing.T, startRev int64) {
 
 	wreq := &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 		CreateRequest: &pb.WatchCreateRequest{
-			Key: []byte("foo"), RangeEnd: []byte("fop"), StartRevision: startRev}}}
+			Key: []byte("foo"), RangeEnd: []byte("fop"), StartRevision: startRev,
+		},
+	}}
 	if err := wStream.Send(wreq); err != nil {
 		t.Fatalf("wStream.Send error: %v", err)
 	}
@@ -736,7 +765,9 @@ func testV3WatchMultipleEventsTxn(t *testing.T, startRev int64) {
 		ru := &pb.RequestOp{}
 		ru.Request = &pb.RequestOp_RequestPut{
 			RequestPut: &pb.PutRequest{
-				Key: []byte(fmt.Sprintf("foo%d", i)), Value: []byte("bar")}}
+				Key: []byte(fmt.Sprintf("foo%d", i)), Value: []byte("bar"),
+			},
+		}
 		txn.Success = append(txn.Success, ru)
 	}
 
@@ -814,7 +845,9 @@ func TestV3WatchMultipleEventsPutUnsynced(t *testing.T) {
 
 	wreq := &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 		CreateRequest: &pb.WatchCreateRequest{
-			Key: []byte("foo"), RangeEnd: []byte("fop"), StartRevision: 1}}}
+			Key: []byte("foo"), RangeEnd: []byte("fop"), StartRevision: 1,
+		},
+	}}
 	if err := wStream.Send(wreq); err != nil {
 		t.Fatalf("wStream.Send error: %v", err)
 	}
@@ -898,7 +931,9 @@ func testV3WatchMultipleStreams(t *testing.T, startRev int64) {
 		}
 		wreq := &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
 			CreateRequest: &pb.WatchCreateRequest{
-				Key: []byte("foo"), StartRevision: startRev}}}
+				Key: []byte("foo"), StartRevision: startRev,
+			},
+		}}
 		if err := wStream.Send(wreq); err != nil {
 			t.Fatalf("wStream.Send error: %v", err)
 		}
@@ -997,12 +1032,14 @@ func TestWatchWithProgressNotify(t *testing.T) {
 
 	// create two watchers, one with progressNotify set.
 	wreq := &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
-		CreateRequest: &pb.WatchCreateRequest{Key: []byte("foo"), StartRevision: 1, ProgressNotify: true}}}
+		CreateRequest: &pb.WatchCreateRequest{Key: []byte("foo"), StartRevision: 1, ProgressNotify: true},
+	}}
 	if err := wStream.Send(wreq); err != nil {
 		t.Fatalf("watch request failed (%v)", err)
 	}
 	wreq = &pb.WatchRequest{RequestUnion: &pb.WatchRequest_CreateRequest{
-		CreateRequest: &pb.WatchCreateRequest{Key: []byte("foo"), StartRevision: 1}}}
+		CreateRequest: &pb.WatchCreateRequest{Key: []byte("foo"), StartRevision: 1},
+	}}
 	if err := wStream.Send(wreq); err != nil {
 		t.Fatalf("watch request failed (%v)", err)
 	}
@@ -1057,7 +1094,9 @@ func TestV3WatchClose(t *testing.T) {
 			cr := &pb.WatchCreateRequest{Key: []byte("a")}
 			req := &pb.WatchRequest{
 				RequestUnion: &pb.WatchRequest_CreateRequest{
-					CreateRequest: cr}}
+					CreateRequest: cr,
+				},
+			}
 			ws.Send(req)
 			ws.Recv()
 		}()
@@ -1085,7 +1124,8 @@ func TestV3WatchWithFilter(t *testing.T) {
 		CreateRequest: &pb.WatchCreateRequest{
 			Key:     []byte("foo"),
 			Filters: []pb.WatchCreateRequest_FilterType{pb.WatchCreateRequest_NOPUT},
-		}}}
+		},
+	}}
 	if err := ws.Send(req); err != nil {
 		t.Fatal(err)
 	}
@@ -1174,7 +1214,8 @@ func TestV3WatchWithPrevKV(t *testing.T) {
 				Key:      []byte(tt.key),
 				RangeEnd: []byte(tt.end),
 				PrevKv:   true,
-			}}}
+			},
+		}}
 		if err := ws.Send(req); err != nil {
 			t.Fatal(err)
 		}

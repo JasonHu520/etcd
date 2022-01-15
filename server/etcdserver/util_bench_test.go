@@ -16,9 +16,10 @@ package etcdserver
 
 import (
 	"errors"
-	"go.etcd.io/etcd/raft/v3/raftpb"
 	"testing"
 	"time"
+
+	"go.etcd.io/etcd/raft/v3/raftpb"
 )
 
 func BenchmarkWarnOfExpensiveRequestNoLog(b *testing.B) {

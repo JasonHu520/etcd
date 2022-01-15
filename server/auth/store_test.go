@@ -18,11 +18,12 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"go.etcd.io/etcd/api/v3/authpb"
 	pb "go.etcd.io/etcd/api/v3/etcdserverpb"
@@ -463,7 +464,6 @@ func TestRootRoleGrantPermission(t *testing.T) {
 		Name: "root",
 		Perm: perm,
 	})
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -473,7 +473,7 @@ func TestRootRoleGrantPermission(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	//whatever grant permission to root, it always return root permission.
+	// whatever grant permission to root, it always return root permission.
 	expectPerm := &authpb.Permission{
 		PermType: authpb.READWRITE,
 		Key:      []byte{},

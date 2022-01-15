@@ -29,8 +29,10 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-var grpc_logger grpc_logsettable.SettableLoggerV2
-var insideTestContext bool
+var (
+	grpc_logger       grpc_logsettable.SettableLoggerV2
+	insideTestContext bool
+)
 
 func init() {
 	grpc_logger = grpc_logsettable.ReplaceGrpcLoggerV2()

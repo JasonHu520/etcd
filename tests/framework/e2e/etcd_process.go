@@ -36,7 +36,6 @@ type EtcdProcess interface {
 	EndpointsV2() []string
 	EndpointsV3() []string
 	EndpointsMetrics() []string
-
 	Start() error
 	Restart() error
 	Stop() error

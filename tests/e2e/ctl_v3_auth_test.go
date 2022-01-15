@@ -72,6 +72,7 @@ func TestCtlV3AuthSnapshot(t *testing.T) { testCtl(t, authTestSnapshot) }
 func TestCtlV3AuthSnapshotJWT(t *testing.T) {
 	testCtl(t, authTestSnapshot, withCfg(*e2e.NewConfigJWT()))
 }
+
 func TestCtlV3AuthJWTExpire(t *testing.T) {
 	testCtl(t, authTestJWTExpire, withCfg(*e2e.NewConfigJWT()))
 }
@@ -956,7 +957,6 @@ func authTestWatch(cx ctlCtx) {
 
 		<-donec
 	}
-
 }
 
 func authTestRoleGet(cx ctlCtx) {

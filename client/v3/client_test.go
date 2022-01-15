@@ -51,7 +51,8 @@ func TestDialCancel(t *testing.T) {
 	ep := "unix://dialcancel:12345"
 	cfg := Config{
 		Endpoints:   []string{ep},
-		DialTimeout: 30 * time.Second}
+		DialTimeout: 30 * time.Second,
+	}
 	c, err := NewClient(t, cfg)
 	if err != nil {
 		t.Fatal(err)

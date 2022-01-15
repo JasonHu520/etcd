@@ -73,25 +73,56 @@ func (EntryType) EnumDescriptor() ([]byte, []int) {
 type MessageType int32
 
 const (
-	MsgHup            MessageType = 0
-	MsgBeat           MessageType = 1
-	MsgProp           MessageType = 2
-	MsgApp            MessageType = 3
-	MsgAppResp        MessageType = 4
-	MsgVote           MessageType = 5
-	MsgVoteResp       MessageType = 6
-	MsgSnap           MessageType = 7
-	MsgHeartbeat      MessageType = 8
-	MsgHeartbeatResp  MessageType = 9
-	MsgUnreachable    MessageType = 10
-	MsgSnapStatus     MessageType = 11
-	MsgCheckQuorum    MessageType = 12
+	// MsgHup 这个消息类型是为了让自己的节点接受到消息后将状态改为candidate的状态，发起选举，
+	// 可以看到tickElection会调用step函数发送一条类型为MsgHup的消息
+	MsgHup MessageType = 0
+	// MsgBeat 向本节点发送消息，当本节点是leader的时候会向子节点发送心跳
+	MsgBeat MessageType = 1
+	// MsgProp follower节点收到msgProp消息后发给leader写入日志的消息类型（这个是不是为了避免脑裂的region leader？），leader接受写入消息之后，
+	// 写入自身之后，然后转发给follower写入，转发给follower的消息类型为MsgApp
+	MsgProp MessageType = 2
+	// MsgApp leader转发给follower的消息类型为MsgApp
+	MsgApp MessageType = 3
+	// MsgAppResp 节点发起投票的消息和节点的响应，可以看下啥情况下才会响应对应节点的投票信息把票投出去
+	MsgAppResp MessageType = 4
+	// MsgVote 节点发起投票的消息
+	MsgVote MessageType = 5
+	// MsgVoteResp 对其他的节点投票消息的响应
+	MsgVoteResp MessageType = 6
+	// MsgSnap leader发给follower的快照类型的消息，具体的handler逻辑在handleSnapshot中，follower节点响应快照消息的类型用的是MsgAppResp。
+	MsgSnap MessageType = 7
+	// MsgHeartbeat 节点成为leader时会想起他节点发送这个类型的消息
+	MsgHeartbeat MessageType = 8
+	// MsgHeartbeatResp 其他节点对主节点发送的心跳消息的回应
+	MsgHeartbeatResp MessageType = 9
+	// MsgUnreachable 当leader发现发给follwer的消息不可达时，如果继续发送MsgApp消息，则会丢失大量消息
+	// 将Follower节点对应的Progress实例切换成ProgressStateProbe状态
+	MsgUnreachable MessageType = 10
+	// MsgSnapStatus 返回主节点，报告发送给follower的snap是否成功
+	MsgSnapStatus MessageType = 11
+	// MsgCheckQuorum 这个消息是leader发送给follower的消息，让follower告诉leader自己是否存活
+	MsgCheckQuorum MessageType = 12
+	// 这是切主的消息
 	MsgTransferLeader MessageType = 13
-	MsgTimeoutNow     MessageType = 14
-	MsgReadIndex      MessageType = 15
-	MsgReadIndexResp  MessageType = 16
-	MsgPreVote        MessageType = 17
-	MsgPreVoteResp    MessageType = 18
+	// MsgTimeoutNow  leader迁移时，当新旧leader的日志数据同步后，旧leader向新leader发送该消息通知可以进行迁移了
+	MsgTimeoutNow MessageType = 14
+	// 其中，entries数组只会有一条数据，带上的是应用层此次请求的标识数据，
+	//在follower收到MsgReadIndex消息进行应答时，同样需要把这个数据原样带回返回给leader，详细的线性读一致性的实现在后面展开分析。
+	MsgReadIndex MessageType = 15
+	// readIndex 消息的回复
+	MsgReadIndexResp MessageType = 16
+	// MsgPreVote 节点投票给自己以进行新一轮的预选举
+	// 考虑到一种情况：当出现网络分区的时候，A、B、C、D、E五个节点被划分成了两个网络分区，A、B、C组成的分区和D、E组成的分区，
+	//其中的D节点，如果在选举超时到来时，都没有收到来自leader节点A的消息（因为网络已经分区），那么D节点认为需要开始一次新的选举了。
+	//正常的情况下，节点D应该把自己的任期号term递增1，然后发起一次新的选举。由于网络分区的存在，节点D肯定不会获得超过半数以上的的投票，
+	//因为A、B、C三个节点组成的分区不会收到它的消息，这会导致节点D不停的由于选举超时而开始一次新的选举，而每次选举又会递增任期号。
+	//在网络分区还没恢复的情况下，这样做问题不大。但是当网络分区恢复时，由于节点D的任期号大于当前leader节点的任期号，
+	//这会导致集群进行一次新的选举，即使节点D肯定不会获得选举成功的情况下（因为节点D的日志落后当前集群太多，不能赢得选举成功）。
+	//为了避免这种无意义的选举流程，节点可以有一种PreVote的状态，在这种状态下，想要参与选举的节点会首先连接集群的其他节点，
+	//只有在超过半数以上的节点连接成功时，才能真正发起一次新的选举。
+	MsgPreVote MessageType = 17
+	// 投票应答消息
+	MsgPreVoteResp MessageType = 18
 )
 
 var MessageType_name = map[int32]string{

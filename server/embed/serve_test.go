@@ -26,7 +26,6 @@ import (
 // TestStartEtcdWrongToken ensures that StartEtcd with wrong configs returns with error.
 func TestStartEtcdWrongToken(t *testing.T) {
 	tdir, err := os.MkdirTemp(t.TempDir(), "token-test")
-
 	if err != nil {
 		t.Fatal(err)
 	}

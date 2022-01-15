@@ -39,41 +39,49 @@ func TestV3CurlPutGetNoTLS(t *testing.T) {
 		testCtl(t, testV3CurlPutGet, withApiPrefix(p), withCfg(*e2e.NewConfigNoTLS()))
 	}
 }
+
 func TestV3CurlPutGetAutoTLS(t *testing.T) {
 	for _, p := range apiPrefix {
 		testCtl(t, testV3CurlPutGet, withApiPrefix(p), withCfg(*e2e.NewConfigAutoTLS()))
 	}
 }
+
 func TestV3CurlPutGetAllTLS(t *testing.T) {
 	for _, p := range apiPrefix {
 		testCtl(t, testV3CurlPutGet, withApiPrefix(p), withCfg(*e2e.NewConfigTLS()))
 	}
 }
+
 func TestV3CurlPutGetPeerTLS(t *testing.T) {
 	for _, p := range apiPrefix {
 		testCtl(t, testV3CurlPutGet, withApiPrefix(p), withCfg(*e2e.NewConfigPeerTLS()))
 	}
 }
+
 func TestV3CurlPutGetClientTLS(t *testing.T) {
 	for _, p := range apiPrefix {
 		testCtl(t, testV3CurlPutGet, withApiPrefix(p), withCfg(*e2e.NewConfigClientTLS()))
 	}
 }
+
 func TestV3CurlWatch(t *testing.T) {
 	for _, p := range apiPrefix {
 		testCtl(t, testV3CurlWatch, withApiPrefix(p))
 	}
 }
+
 func TestV3CurlTxn(t *testing.T) {
 	for _, p := range apiPrefix {
 		testCtl(t, testV3CurlTxn, withApiPrefix(p))
 	}
 }
+
 func TestV3CurlAuth(t *testing.T) {
 	for _, p := range apiPrefix {
 		testCtl(t, testV3CurlAuth, withApiPrefix(p))
 	}
 }
+
 func TestV3CurlAuthClientTLSCertAuth(t *testing.T) {
 	for _, p := range apiPrefix {
 		testCtl(t, testV3CurlAuth, withApiPrefix(p), withCfg(*e2e.NewConfigClientTLSCertAuthWithNoCN()))
@@ -181,7 +189,6 @@ func testV3CurlTxn(cx ctlCtx) {
 	if err := e2e.CURLPost(cx.epc, e2e.CURLReq{Endpoint: path.Join(p, "/kv/txn"), Value: malformed, Expected: "error"}); err != nil {
 		cx.t.Fatalf("failed testV3CurlTxn put with curl using prefix (%s) (%v)", p, err)
 	}
-
 }
 
 func testV3CurlAuth(cx ctlCtx) {
@@ -208,7 +215,7 @@ func testV3CurlAuth(cx ctlCtx) {
 		cx.t.Fatalf("failed testV3CurlAuth create role with curl using prefix (%s) (%v)", p, err)
 	}
 
-	//grant root role
+	// grant root role
 	for i := 0; i < len(usernames); i++ {
 		grantroleroot, err := json.Marshal(&pb.AuthUserGrantRoleRequest{User: usernames[i], Role: "root"})
 		testutil.AssertNil(cx.t, err)

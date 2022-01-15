@@ -31,21 +31,19 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	// Hop-by-hop headers. These are removed when sent to the backend.
-	// http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
-	// This list of headers borrowed from stdlib httputil.ReverseProxy
-	singleHopHeaders = []string{
-		"Connection",
-		"Keep-Alive",
-		"Proxy-Authenticate",
-		"Proxy-Authorization",
-		"Te", // canonicalized version of "TE"
-		"Trailers",
-		"Transfer-Encoding",
-		"Upgrade",
-	}
-)
+// Hop-by-hop headers. These are removed when sent to the backend.
+// http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
+// This list of headers borrowed from stdlib httputil.ReverseProxy
+var singleHopHeaders = []string{
+	"Connection",
+	"Keep-Alive",
+	"Proxy-Authenticate",
+	"Proxy-Authorization",
+	"Te", // canonicalized version of "TE"
+	"Trailers",
+	"Transfer-Encoding",
+	"Upgrade",
+}
 
 func removeSingleHopHeaders(hdrs *http.Header) {
 	for _, h := range singleHopHeaders {

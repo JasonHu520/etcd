@@ -37,14 +37,12 @@ import (
 	integration2 "go.etcd.io/etcd/tests/v3/framework/integration"
 )
 
-var (
-	testTLSInfo = transport.TLSInfo{
-		KeyFile:        integration2.MustAbsPath("../../fixtures/server.key.insecure"),
-		CertFile:       integration2.MustAbsPath("../../fixtures/server.crt"),
-		TrustedCAFile:  integration2.MustAbsPath("../../fixtures/ca.crt"),
-		ClientCertAuth: true,
-	}
-)
+var testTLSInfo = transport.TLSInfo{
+	KeyFile:        integration2.MustAbsPath("../../fixtures/server.key.insecure"),
+	CertFile:       integration2.MustAbsPath("../../fixtures/server.crt"),
+	TrustedCAFile:  integration2.MustAbsPath("../../fixtures/ca.crt"),
+	ClientCertAuth: true,
+}
 
 func TestEmbedEtcd(t *testing.T) {
 	testutil.SkipTestIfShortMode(t, "Cannot start embedded cluster in --short tests")

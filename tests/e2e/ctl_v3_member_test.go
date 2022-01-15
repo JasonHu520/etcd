@@ -31,24 +31,31 @@ func TestCtlV3MemberListWithHex(t *testing.T) { testCtl(t, memberListWithHexTest
 func TestCtlV3MemberListNoTLS(t *testing.T) {
 	testCtl(t, memberListTest, withCfg(*e2e.NewConfigNoTLS()))
 }
+
 func TestCtlV3MemberListClientTLS(t *testing.T) {
 	testCtl(t, memberListTest, withCfg(*e2e.NewConfigClientTLS()))
 }
+
 func TestCtlV3MemberListClientAutoTLS(t *testing.T) {
 	testCtl(t, memberListTest, withCfg(*e2e.NewConfigClientAutoTLS()))
 }
+
 func TestCtlV3MemberListPeerTLS(t *testing.T) {
 	testCtl(t, memberListTest, withCfg(*e2e.NewConfigPeerTLS()))
 }
+
 func TestCtlV3MemberRemove(t *testing.T) {
 	testCtl(t, memberRemoveTest, withQuorum(), withNoStrictReconfig())
 }
+
 func TestCtlV3MemberRemoveNoTLS(t *testing.T) {
 	testCtl(t, memberRemoveTest, withQuorum(), withNoStrictReconfig(), withCfg(*e2e.NewConfigNoTLS()))
 }
+
 func TestCtlV3MemberRemoveClientTLS(t *testing.T) {
 	testCtl(t, memberRemoveTest, withQuorum(), withNoStrictReconfig(), withCfg(*e2e.NewConfigClientTLS()))
 }
+
 func TestCtlV3MemberRemoveClientAutoTLS(t *testing.T) {
 	testCtl(t, memberRemoveTest, withQuorum(), withNoStrictReconfig(), withCfg(
 		// default ClusterSize is 1
@@ -59,6 +66,7 @@ func TestCtlV3MemberRemoveClientAutoTLS(t *testing.T) {
 			InitialToken:    "new",
 		}))
 }
+
 func TestCtlV3MemberRemovePeerTLS(t *testing.T) {
 	testCtl(t, memberRemoveTest, withQuorum(), withNoStrictReconfig(), withCfg(*e2e.NewConfigPeerTLS()))
 }
@@ -67,9 +75,11 @@ func TestCtlV3MemberAddNoTLS(t *testing.T) { testCtl(t, memberAddTest, withCfg(*
 func TestCtlV3MemberAddClientTLS(t *testing.T) {
 	testCtl(t, memberAddTest, withCfg(*e2e.NewConfigClientTLS()))
 }
+
 func TestCtlV3MemberAddClientAutoTLS(t *testing.T) {
 	testCtl(t, memberAddTest, withCfg(*e2e.NewConfigClientAutoTLS()))
 }
+
 func TestCtlV3MemberAddPeerTLS(t *testing.T) {
 	testCtl(t, memberAddTest, withCfg(*e2e.NewConfigPeerTLS()))
 }
@@ -78,12 +88,15 @@ func TestCtlV3MemberUpdate(t *testing.T)        { testCtl(t, memberUpdateTest) }
 func TestCtlV3MemberUpdateNoTLS(t *testing.T) {
 	testCtl(t, memberUpdateTest, withCfg(*e2e.NewConfigNoTLS()))
 }
+
 func TestCtlV3MemberUpdateClientTLS(t *testing.T) {
 	testCtl(t, memberUpdateTest, withCfg(*e2e.NewConfigClientTLS()))
 }
+
 func TestCtlV3MemberUpdateClientAutoTLS(t *testing.T) {
 	testCtl(t, memberUpdateTest, withCfg(*e2e.NewConfigClientAutoTLS()))
 }
+
 func TestCtlV3MemberUpdatePeerTLS(t *testing.T) {
 	testCtl(t, memberUpdateTest, withCfg(*e2e.NewConfigPeerTLS()))
 }

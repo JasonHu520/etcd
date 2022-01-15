@@ -41,8 +41,10 @@ type Case interface {
 	TestCase() rpcpb.Case
 }
 
-type injectMemberFunc func(*Cluster, int) error
-type recoverMemberFunc func(*Cluster, int) error
+type (
+	injectMemberFunc  func(*Cluster, int) error
+	recoverMemberFunc func(*Cluster, int) error
+)
 
 type caseByFunc struct {
 	desc          string

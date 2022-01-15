@@ -31,10 +31,8 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	// timeout for reading snapshot response body
-	snapResponseReadTimeout = 5 * time.Second
-)
+// timeout for reading snapshot response body
+var snapResponseReadTimeout = 5 * time.Second
 
 type snapshotSender struct {
 	from, to types.ID
@@ -96,6 +94,8 @@ func (s *snapshotSender) send(merged snap.Message) {
 
 	err := s.post(req)
 	defer merged.CloseWithError(err)
+
+	// 这里会检测snap是否发送成功，并改变不可达节点的状态
 	if err != nil {
 		if s.tr.Logger != nil {
 			s.tr.Logger.Warn(

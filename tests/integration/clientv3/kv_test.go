@@ -932,7 +932,6 @@ func TestKVLargeRequests(t *testing.T) {
 		// without proper client-side receive size limit
 		// "code = ResourceExhausted desc = grpc: received message larger than max (5242929 vs. 4194304)"
 		{
-
 			maxRequestBytesServer:  7*1024*1024 + 512*1024,
 			maxCallSendBytesClient: 7 * 1024 * 1024,
 			maxCallRecvBytesClient: 0,

@@ -36,12 +36,10 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	confState = raftpb.ConfState{
-		Voters:    []uint64{0x00ffca74},
-		AutoLeave: false,
-	}
-)
+var confState = raftpb.ConfState{
+	Voters:    []uint64{0x00ffca74},
+	AutoLeave: false,
+}
 
 func TestNew(t *testing.T) {
 	p, err := os.MkdirTemp(t.TempDir(), "waltest")
@@ -1109,7 +1107,6 @@ func TestValidSnapshotEntriesAfterPurgeWal(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
-
 	}()
 	files, _, err := selectWALFiles(nil, p, snap0)
 	if err != nil {

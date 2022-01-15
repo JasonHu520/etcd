@@ -41,6 +41,7 @@ func (l *RedirectLogger) printf(lvl int, format string, args ...interface{}) {
 		}
 	}
 }
+
 func (l *RedirectLogger) print(lvl int, args ...interface{}) {
 	if l.Lvl <= lvl {
 		fmt.Fprint(l, lvlNames[lvl], " ")
@@ -85,7 +86,6 @@ func (l *RedirectLogger) Fatal(v ...interface{}) {
 }
 
 func (l *RedirectLogger) Fatalf(format string, v ...interface{}) {
-
 	l.printf(4, format, v...)
 }
 

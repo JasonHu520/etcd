@@ -353,7 +353,7 @@ func startProxy(cfg *config) error {
 			return clientURLs
 		}
 
-		err = pkgioutil.WriteAndSyncFile(clusterfile+".bak", b, 0600)
+		err = pkgioutil.WriteAndSyncFile(clusterfile+".bak", b, 0o600)
 		if err != nil {
 			lg.Warn("proxy failed to write cluster file", zap.Error(err))
 			return clientURLs
