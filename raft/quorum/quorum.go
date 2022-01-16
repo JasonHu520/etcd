@@ -47,7 +47,9 @@ func (m mapAckIndexer) AckedIndex(id uint64) (Index, bool) {
 //go:generate stringer -type=VoteResult
 type VoteResult uint8
 
+// 票的统计状态
 const (
+
 	// VotePending indicates that the decision of the vote depends on future
 	// votes, i.e. neither "yes" or "no" has reached quorum yet.
 	VotePending VoteResult = 1 + iota

@@ -419,6 +419,7 @@ func (r *raft) send(m pb.Message) {
 			m.Term = r.Term
 		}
 	}
+	// 将消息传入msgs，交给raft上层
 	r.msgs = append(r.msgs, m)
 }
 
@@ -655,6 +656,7 @@ func (r *raft) tickElection() {
 
 	if r.promotable() && r.pastElectionTimeout() {
 		r.electionElapsed = 0
+		// 这个消息是本地生成--本地接受，告诉可以发起一轮竞选
 		if err := r.Step(pb.Message{From: r.id, Type: pb.MsgHup}); err != nil {
 			r.logger.Debugf("error occurred during election: %v", err)
 		}
@@ -850,7 +852,7 @@ func (r *raft) campaign(t CampaignType) {
 		r.send(pb.Message{
 			Term:    term,
 			To:      id,
-			Type:    voteMsg,
+			Type:    voteMsg, // 如果是强制切主，这里voteMsg--->MsgVote，当前节点状态为候选者
 			Index:   r.raftLog.lastIndex(),
 			LogTerm: r.raftLog.lastTerm(),
 			Context: ctx})
@@ -879,7 +881,7 @@ func (r *raft) Step(m pb.Message) error {
 			force := bytes.Equal(m.Context, []byte(campaignTransfer))
 			inLease := r.checkQuorum && r.lead != None && r.electionElapsed < r.electionTimeout
 			if !force && inLease {
-				//todo 当节点在 election timeout 时间内接收到了 leader 的消息，就不会改变自己的 term 也不会给其他节点投票。
+				//todo 前提：不是强制切主，当节点在 election timeout 时间内接收到了 leader 的消息，就不会改变自己的 term 也不会给其他节点投票。
 				// If a server receives a RequestVote request within the minimum election timeout
 				// of hearing from a current leader, it does not update its term or grant its vote
 				r.logger.Infof("%x [logterm: %d, index: %d, vote: %x] ignored %s from %x [logterm: %d, index: %d] at term %d: lease is not expired (remaining ticks: %d)",
@@ -1063,7 +1065,7 @@ func stepLeader(r *raft, m pb.Message) error {
 			r.logger.Debugf("%x [term %d] transfer leadership to %x is in progress; dropping proposal", r.id, r.Term, r.leadTransferee)
 			return ErrProposalDropped
 		}
-
+		// TODO(to familiar)
 		for i := range m.Entries {
 			e := &m.Entries[i]
 			var cc pb.ConfChangeI
@@ -1269,12 +1271,13 @@ func stepLeader(r *raft, m pb.Message) error {
 			}
 		} else {
 			oldPaused := pr.IsPaused()
+			// pr.Match < n,
 			if pr.MaybeUpdate(m.Index) {
 				switch {
 				case pr.State == tracker.StateProbe:
 					pr.BecomeReplicate()
 				case pr.State == tracker.StateSnapshot && pr.Match >= pr.PendingSnapshot:
-					// TODO(tbg): we should also enter this branch if a snapshot is
+					//TODO(tbg): we should also enter this branch if a snapshot is
 					// received that is below pr.PendingSnapshot but which makes it
 					// possible to use the log again.
 					r.logger.Debugf("%x recovered from needing snapshot, resumed sending replication messages to %x [%s]", r.id, m.From, pr)
@@ -1286,6 +1289,7 @@ func stepLeader(r *raft, m pb.Message) error {
 					pr.BecomeProbe()
 					pr.BecomeReplicate()
 				case pr.State == tracker.StateReplicate:
+					// 释放小于m.Index元素：即将start调整到小于to的最大位置,调整count
 					pr.Inflights.FreeLE(m.Index)
 				}
 
@@ -1308,6 +1312,7 @@ func stepLeader(r *raft, m pb.Message) error {
 				for r.maybeSendAppend(m.From, false) {
 				}
 				// Transfer leadership is in progress.
+				// 这里反馈切主消息，告诉leader已经消息同步完成
 				if m.From == r.leadTransferee && pr.Match == r.raftLog.lastIndex() {
 					r.logger.Infof("%x sent MsgTimeoutNow to %x after received MsgAppResp", r.id, m.From)
 					r.sendTimeoutNow(m.From)
@@ -1329,11 +1334,12 @@ func stepLeader(r *raft, m pb.Message) error {
 		if r.readOnly.option != ReadOnlySafe || len(m.Context) == 0 {
 			return nil
 		}
-
+		//TODO 统计票数，如果没有达到大多数就直接返回，等待下一个心跳返回，直到满足大多数，便进行下一步
 		if r.prs.Voters.VoteResult(r.readOnly.recvAck(m.From, m.Context)) != quorum.VoteWon {
 			return nil
 		}
-
+		//TODO  拿到当前ctx以及之前的ctx的对应的状态信息，返回给对应的节点
+		// 由于是追加式加入readIndex-->ctx[唯一radOnly ID]，所以这里可以采取当前ctx及之前的
 		rss := r.readOnly.advance(m)
 		for _, rs := range rss {
 			if resp := r.responseToReadIndexReq(rs.req, rs.index); resp.To != None {
@@ -1377,14 +1383,17 @@ func stepLeader(r *raft, m pb.Message) error {
 		leadTransferee := m.From
 		lastLeadTransferee := r.leadTransferee
 		if lastLeadTransferee != None {
+			// 请求的Id和上一次Id相同， 则表明是重复的切主消息，可以忽略
 			if lastLeadTransferee == leadTransferee {
 				r.logger.Infof("%x [term %d] transfer leadership to %x is in progress, ignores request to same node %x",
 					r.id, r.Term, leadTransferee, leadTransferee)
 				return nil
 			}
+			//新的切主消息，这之前的可以取消了
 			r.abortLeaderTransfer()
 			r.logger.Infof("%x [term %d] abort previous transferring leadership to %x", r.id, r.Term, lastLeadTransferee)
 		}
+		// 请求Id已经是主节点
 		if leadTransferee == r.id {
 			r.logger.Debugf("%x is already leader. Ignored transferring leadership to self", r.id)
 			return nil
@@ -1394,10 +1403,12 @@ func stepLeader(r *raft, m pb.Message) error {
 		// Transfer leadership should be finished in one electionTimeout, so reset r.electionElapsed.
 		r.electionElapsed = 0
 		r.leadTransferee = leadTransferee
+		// 如果和主节点的日志保持一致，则可以直接开始切主
 		if pr.Match == r.raftLog.lastIndex() {
 			r.sendTimeoutNow(leadTransferee)
 			r.logger.Infof("%x sends MsgTimeoutNow to %x immediately as %x already has up-to-date log", r.id, leadTransferee, leadTransferee)
 		} else {
+			// 否则同步日志给当前节点
 			r.sendAppend(leadTransferee)
 		}
 	}
@@ -1433,6 +1444,8 @@ func stepCandidate(r *raft, m pb.Message) error {
 		// 统计投票信息，给自己投票
 		gr, rj, res := r.poll(m.From, m.Type, !m.Reject)
 		r.logger.Infof("%x has received %d %s votes and %d vote rejections", r.id, gr, m.Type, rj)
+		//todo 问题：这里统计投票信息不用等待吗？至少不应该等待多个请求回在统计？这里如何判断所有大多数请求都回来了了？
+		// 如果这次的结果不是大多数结果的总数，就跳过这次的统计，等待下一个投票回复
 		switch res {
 		case quorum.VoteWon: // 收到 quorum 的投票
 			if r.state == StatePreCandidate {
@@ -1497,6 +1510,7 @@ func stepFollower(r *raft, m pb.Message) error {
 		m.To = r.lead
 		r.send(m)
 	case pb.MsgReadIndexResp:
+
 		if len(m.Entries) != 1 {
 			r.logger.Errorf("%x invalid format of MsgReadIndexResp from %x, entries count: %d", r.id, m.From, len(m.Entries))
 			return nil

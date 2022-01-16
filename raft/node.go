@@ -258,11 +258,11 @@ type msgWithResult struct {
 
 // node is the canonical implementation of the Node interface
 type node struct {
-	propc      chan msgWithResult
-	recvc      chan pb.Message
+	propc      chan msgWithResult // 接受上报消息
+	recvc      chan pb.Message    // 将应用层结果返回给raft
 	confc      chan pb.ConfChangeV2
 	confstatec chan pb.ConfState
-	readyc     chan Ready
+	readyc     chan Ready // 这channel可以将raft的消息传给应用层
 	advancec   chan struct{}
 	tickc      chan struct{}
 	done       chan struct{}
@@ -325,6 +325,7 @@ func (n *node) run() {
 			// handled first, but it's generally good to emit larger Readys plus
 			// it simplifies testing (by emitting less frequently and more
 			// predictably).
+			// 拿到raft层的消息
 			rd = n.rn.readyWithoutAccept()
 			readyc = n.readyc
 		}
@@ -396,9 +397,12 @@ func (n *node) run() {
 		case <-n.tickc:
 			n.rn.Tick()
 		case readyc <- rd:
+			// 这里只是负责将消息传给应用层，并不处理消息
 			n.rn.acceptReady(rd)
+
 			advancec = n.advancec
 		case <-advancec:
+			// 交给RawNode处理消息
 			n.rn.Advance(rd)
 			rd = Ready{}
 			advancec = nil
@@ -568,7 +572,7 @@ func newReady(r *raft, prevSoftSt *SoftState, prevHardSt pb.HardState) Ready {
 	rd := Ready{
 		Entries:          r.raftLog.unstableEntries(),
 		CommittedEntries: r.raftLog.nextEnts(),
-		Messages:         r.msgs,
+		Messages:         r.msgs, // 把消息传到node
 	}
 	if softSt := r.softState(); !softSt.equal(prevSoftSt) {
 		rd.SoftState = softSt

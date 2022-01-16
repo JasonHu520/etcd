@@ -86,7 +86,7 @@ func (ro *readOnly) advance(m pb.Message) []*readIndexStatus {
 
 	ctx := string(m.Context)
 	rss := []*readIndexStatus{}
-
+	// 遍历历史留下的ctx，找到当前的对应ctx，如果找到对应，就将在当前ctx之前的ctx全部返回
 	for _, okctx := range ro.readIndexQueue {
 		i++
 		rs, ok := ro.pendingReadIndex[okctx]
@@ -101,7 +101,9 @@ func (ro *readOnly) advance(m pb.Message) []*readIndexStatus {
 	}
 
 	if found {
+		// 更新readIndex队列
 		ro.readIndexQueue = ro.readIndexQueue[i:]
+		// 删除对应的状态信息----> delete ro.pendingReadIndex
 		for _, rs := range rss {
 			delete(ro.pendingReadIndex, string(rs.req.Entries[0].Data))
 		}

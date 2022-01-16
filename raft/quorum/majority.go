@@ -203,6 +203,7 @@ func (c MajorityConfig) VoteResult(votes map[uint64]bool) VoteResult {
 	if ny[1] >= q {
 		return VoteWon
 	}
+	// 只要未收到的票和赞成票大于总数的一半就表明还有机会，需要返回进行等待重试
 	if ny[1]+missing >= q {
 		return VotePending
 	}
