@@ -832,6 +832,7 @@ func (c *RaftCluster) updateMembershipMetric(peer types.ID, known bool) {
 	if known {
 		v = 1
 	}
+	//TODO 普罗米修斯 上报消息
 	knownPeers.WithLabelValues(c.localID.String(), peer.String()).Set(v)
 }
 

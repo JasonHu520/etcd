@@ -322,8 +322,9 @@ func (rc *raftNode) startRaft() {
 			rc.transport.AddPeer(types.ID(i+1), []string{rc.peers[i]})
 		}
 	}
-
+	// 开启一个http服务
 	go rc.serveRaft()
+	// 监听传入的消息
 	go rc.serveChannels()
 }
 

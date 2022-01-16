@@ -220,15 +220,17 @@ func StartNode(c *Config, peers []Peer) Node {
 	if len(peers) == 0 {
 		panic("no peers given; use RestartNode instead")
 	}
+	// 初始化一个实际节点，里面包含一个raft，实现具体的taft的协议
 	rn, err := NewRawNode(c)
 	if err != nil {
 		panic(err)
 	}
+	//
 	err = rn.Bootstrap(peers)
 	if err != nil {
 		c.Logger.Warningf("error occurred during starting a new node: %v", err)
 	}
-
+	// 包含一个rawNode，同时包含一些channel用于接受传入的消息，通过这个node将消息传入raft
 	n := newNode(rn)
 
 	go n.run()
@@ -266,7 +268,7 @@ type node struct {
 	done       chan struct{}
 	stop       chan struct{}
 	status     chan chan Status
-
+	// 一个rawnode中包含了一个raft。node是一个raft节点实例，对外提供一堆channel，让外部的调用可以写入消息和拿到消息的返回。
 	rn *RawNode
 }
 
@@ -326,7 +328,6 @@ func (n *node) run() {
 			rd = n.rn.readyWithoutAccept()
 			readyc = n.readyc
 		}
-
 		if lead != r.lead {
 			if r.hasLeader() {
 				if lead == None {
@@ -349,8 +350,10 @@ func (n *node) run() {
 		case pm := <-propc:
 			m := pm.m
 			m.From = r.id
+			// 通过node将消息传入raft协议层
 			err := r.Step(m)
 			if pm.result != nil {
+				// 将结果返回给node层->具体节点
 				pm.result <- err
 				close(pm.result)
 			}

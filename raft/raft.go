@@ -60,6 +60,9 @@ const (
 
 // Possible values for CampaignType
 const (
+	// campaignPreElection：对应PreVote的场景。
+	// campaignElection：正常的选举场景。
+	// campaignTransfer：由于leader迁移发生的选举。如果是这种类型的选举，那么msg.Context字段保存的是“CampaignTransfer”`字符串，这种情况下会强制进行leader的迁移。
 	// campaignPreElection represents the first phase of a normal election when
 	// Config.PreVote is true.
 	campaignPreElection CampaignType = "CampaignPreElection"
@@ -781,6 +784,7 @@ func (r *raft) hup(t CampaignType) {
 		r.logger.Panicf("unexpected error getting unapplied entries (%v)", err)
 	}
 	if n := numOfPendingConf(ents); n != 0 && r.raftLog.committed > r.raftLog.applied {
+		// 正在有日志在应用，不能开启选举
 		r.logger.Warningf("%x cannot campaign at term %d since there are still %d pending configuration changes to apply", r.id, r.Term, n)
 		return
 	}
@@ -803,15 +807,18 @@ func (r *raft) campaign(t CampaignType) {
 		r.becomePreCandidate()
 		voteMsg = pb.MsgPreVote
 		// PreVote RPCs are sent for the next term before we've incremented r.Term.
+		// 这个term只会在正真开启选举时应用，即成为候选人时
 		term = r.Term + 1
 	} else {
 		r.becomeCandidate()
 		voteMsg = pb.MsgVote
 		term = r.Term
 	}
+	// 给自己投票，同时收集其他节点的投票数，确认是否可以成为候选人后者成为leder
 	if _, _, res := r.poll(r.id, voteRespMsgType(voteMsg), true); res == quorum.VoteWon {
 		// We won the election after voting for ourselves (which must mean that
 		// this is a single-node cluster). Advance to the next state.
+		// 如果得到多数票就开启讯选举或者成为leader
 		if t == campaignPreElection {
 			r.campaign(campaignElection)
 		} else {
@@ -819,6 +826,7 @@ func (r *raft) campaign(t CampaignType) {
 		}
 		return
 	}
+	// 票数不满足时, 这里主要处理，强制切主的情况
 	var ids []uint64
 	{
 		idMap := r.prs.Voters.IDs()
@@ -839,7 +847,13 @@ func (r *raft) campaign(t CampaignType) {
 		if t == campaignTransfer {
 			ctx = []byte(t)
 		}
-		r.send(pb.Message{Term: term, To: id, Type: voteMsg, Index: r.raftLog.lastIndex(), LogTerm: r.raftLog.lastTerm(), Context: ctx})
+		r.send(pb.Message{
+			Term:    term,
+			To:      id,
+			Type:    voteMsg,
+			Index:   r.raftLog.lastIndex(),
+			LogTerm: r.raftLog.lastTerm(),
+			Context: ctx})
 	}
 }
 
@@ -875,6 +889,7 @@ func (r *raft) Step(m pb.Message) error {
 		}
 		switch {
 		case m.Type == pb.MsgPreVote:
+			//TODO 如果时强制切主，这里不用回应，消息默认同意
 			// Never change our term in response to a PreVote
 		case m.Type == pb.MsgPreVoteResp && !m.Reject:
 			// We send pre-vote requests with a term in our future. If the
@@ -936,6 +951,7 @@ func (r *raft) Step(m pb.Message) error {
 
 	switch m.Type {
 	case pb.MsgHup:
+		//
 		// 只有收到 majority 的投票，才会增加 term 进行正常的选举过程；
 		// 若 Pre-Vote 失败，当网络恢复后，该节点收到 leader 的消息重新成为 follower，避免了 disrupt 集群。
 		if r.preVote {

@@ -19,6 +19,9 @@ package tracker
 // use Full() to check whether more messages can be sent, call Add() whenever
 // they are sending a new append, and release "quota" via FreeLE() whenever an
 // ack is received.
+// 该结构体使用一个固定大小的循环缓冲区来控制给一个节点同步数据的流量控制，
+// 每当给该follower发送同步消息时，就占用该缓冲区的一个空间；
+// 反之，当收到该follower的成功接收了该同步消息的应答之后，就释放缓冲区的空间。
 type Inflights struct {
 	// the starting index in the buffer
 	start int

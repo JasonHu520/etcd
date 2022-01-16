@@ -75,6 +75,7 @@ type MessageType int32
 const (
 	// MsgHup 这个消息类型是为了让自己的节点接受到消息后将状态改为candidate的状态，发起选举，
 	// 可以看到tickElection会调用step函数发送一条类型为MsgHup的消息
+	// 这是一个本地消息（发给自己），通过心跳告诉自己可以开始选举
 	MsgHup MessageType = 0
 	// MsgBeat 向本节点发送消息，当本节点是leader的时候会向子节点发送心跳
 	MsgBeat MessageType = 1
@@ -107,9 +108,9 @@ const (
 	// MsgTimeoutNow  leader迁移时，当新旧leader的日志数据同步后，旧leader向新leader发送该消息通知可以进行迁移了
 	MsgTimeoutNow MessageType = 14
 	// 其中，entries数组只会有一条数据，带上的是应用层此次请求的标识数据，
-	//在follower收到MsgReadIndex消息进行应答时，同样需要把这个数据原样带回返回给leader，详细的线性读一致性的实现在后面展开分析。
+	// 在follower收到MsgReadIndex消息进行应答时，同样需要把这个数据原样带回返回给leader，详细的线性读一致性的实现在后面展开分析。
 	MsgReadIndex MessageType = 15
-	// readIndex 消息的回复
+	// MsgReadIndexResp readIndex 消息的回复
 	MsgReadIndexResp MessageType = 16
 	// MsgPreVote 节点投票给自己以进行新一轮的预选举
 	// 考虑到一种情况：当出现网络分区的时候，A、B、C、D、E五个节点被划分成了两个网络分区，A、B、C组成的分区和D、E组成的分区，
@@ -252,6 +253,10 @@ func (ConfChangeTransition) EnumDescriptor() ([]byte, []int) {
 type ConfChangeType int32
 
 const (
+	// ConfChangeAddNode：添加新节点。
+	// ConfChangeRemoveNode：移除节点。
+	// ConfChangeUpdateNode：用于状态机更新节点url等操作，etcd/raft模块本身不会对节点进行任何操作。
+	// ConfChangeAddLearnerNode：添加learner节点。
 	ConfChangeAddNode        ConfChangeType = 0
 	ConfChangeRemoveNode     ConfChangeType = 1
 	ConfChangeUpdateNode     ConfChangeType = 2
