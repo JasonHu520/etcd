@@ -423,9 +423,12 @@ var xxx_messageInfo_Snapshot proto.InternalMessageInfo
 
 type Message struct {
 	Type MessageType `protobuf:"varint,1,opt,name=type,enum=raftpb.MessageType" json:"type"`
-	To   uint64      `protobuf:"varint,2,opt,name=to" json:"to"`
-	From uint64      `protobuf:"varint,3,opt,name=from" json:"from"`
-	Term uint64      `protobuf:"varint,4,opt,name=term" json:"term"`
+	//  消息的接受者
+	To uint64 `protobuf:"varint,2,opt,name=to" json:"to"`
+	// 消息的发送者
+	From uint64 `protobuf:"varint,3,opt,name=from" json:"from"`
+	//
+	Term uint64 `protobuf:"varint,4,opt,name=term" json:"term"`
 	// logTerm is generally used for appending Raft logs to followers. For example,
 	// (type=MsgApp,index=100,logTerm=5) means leader appends entries starting at
 	// index=101, and the term of entry at index 100 is 5.

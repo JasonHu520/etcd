@@ -521,6 +521,7 @@ func (n *node) stepWithWaitOption(ctx context.Context, m pb.Message, wait bool) 
 	return nil
 }
 
+// Ready 这个接口可以给应用层调用
 func (n *node) Ready() <-chan Ready { return n.readyc }
 
 func (n *node) Advance() {

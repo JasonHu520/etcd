@@ -15,6 +15,7 @@
 package rafthttp
 
 import (
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -41,7 +42,7 @@ var (
 func addPeerToProber(lg *zap.Logger, p probing.Prober, id string, us []string, roundTripperName string, rttSecProm *prometheus.HistogramVec) {
 	hus := make([]string, len(us))
 	for i := range us {
-		hus[i] = us[i] + ProbingPrefix
+		hus[i] = strings.TrimPrefix(us[i]+ProbingPrefix, " ")
 	}
 
 	p.AddHTTP(id, proberInterval, hus)

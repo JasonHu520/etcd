@@ -28,25 +28,29 @@ import (
 // strewn around `*raft.raft`. Additionally, some fields are only used when in a
 // certain State. All of this isn't ideal.
 type Progress struct {
+	// Match 保存目前为止，已复制给该follower的日志的最高索引值
+	// Next 存下一次leader发送append消息给该follower的日志索引，即下一次复制日志时，leader会从Next开始发送日志
 	Match, Next uint64
 	// State defines how the leader should interact with the follower.
 	//
-	// When in StateProbe, leader sends at most one replication message
-	// per heartbeat interval. It also probes actual progress of the follower.
+	// StateProbe: 探测状态，当follower拒绝了最近的append消息时，那么就会进入探测状态，
+	//此时leader会试图继续往前追溯该follower的日志从哪里开始丢失的。在probe状态时，leader每次最多append一条日志，
+	//如果收到的回应中带有RejectHint信息，则回退Next索引，以便下次重试。在初始时，leader会把所有follower的状态设为probe，
+	//因为它并不知道各个follower的同步状态，所以需要慢慢试探。
+
+	// StateReplicate: 当leader确认某个follower的同步状态后，它就会把这个follower的state切换到这个状态，
+	//并且用pipeline的方式快速复制日志。leader在发送复制消息之后，就修改该节点的Next索引为发送消息的最大索引+1。
 	//
-	// When in StateReplicate, leader optimistically increases next
-	// to the latest entry sent after sending replication message. This is
-	// an optimized state for fast replicating log entries to the follower.
-	//
-	// When in StateSnapshot, leader should have sent out snapshot
-	// before and stops sending any replication message.
+	// StateSnapshot: 接收快照状态。当leader向某个follower发送append消息，
+	//试图让该follower状态跟上leader时，发现此时leader上保存的索引数据已经对不上了，
+	//比如leader在index为10之前的数据都已经写入快照中了，但是该follower需要的是10之前的数据，
+	//此时就会切换到该状态下，发送快照给该follower。当快照数据同步追上之后，并不是直接切换到Replicate状态，而是首先切换到Probe状态。
+
 	State StateType
 
 	// PendingSnapshot is used in StateSnapshot.
-	// If there is a pending snapshot, the pendingSnapshot will be set to the
-	// index of the snapshot. If pendingSnapshot is set, the replication process of
-	// this Progress will be paused. raft will not resend snapshot until the pending one
-	// is reported to be failed.
+	// 如果有一个挂起的快照，pendingSnapshot 将被设置为
+	//快照的索引。 如果设置了pendingSnapshot，这个Progress的复制过程将被暂停。 在挂起的快照报告失败之前，raft 不会重新发送快照。
 	PendingSnapshot uint64
 
 	// RecentActive is true if the progress is recently active. Receiving any messages
