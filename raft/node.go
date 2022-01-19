@@ -49,44 +49,53 @@ func (a *SoftState) equal(b *SoftState) bool {
 
 // Ready encapsulates the entries and messages that are ready to read,
 // be saved to stable storage, committed or sent to other peers.
-// All fields in Ready are read-only.
+// All fields in Ready are read-only
+// ready将raft中的一些状态消息，传给应用层
 type Ready struct {
 	// The current volatile state of a Node.
 	// SoftState will be nil if there is no update.
 	// It is not required to consume or store SoftState.
+	//todo 当前的主节点和当前节点的状态
 	*SoftState
 
 	// The current state of a Node to be saved to stable storage BEFORE
 	// Messages are sent.
 	// HardState will be equal to empty state if there is no update.
+	//todo 包含当前的Term, 提交点还有投票给了谁
 	pb.HardState
 
 	// ReadStates can be used for node to serve linearizable read requests locally
 	// when its applied index is greater than the index in ReadState.
 	// Note that the readState will be returned when raft receives msgReadIndex.
 	// The returned is only valid for the request that requested to read.
+	//todo 当前节点的读情况，一般包含读请求的唯一ID，和当前的Index
 	ReadStates []ReadState
 
 	// Entries specifies entries to be saved to stable storage BEFORE
-	// Messages are sent.
+	//todo Messages are sent.
+	// todo 这个entry用于普通同步信息的数据结构体（非快照）
 	Entries []pb.Entry
 
 	// Snapshot specifies the snapshot to be saved to stable storage.
+	//todo 快照消息主要保存，到当前快照的Index及之前的日志数据，用于同步给其他节点
 	Snapshot pb.Snapshot
 
 	// CommittedEntries specifies entries to be committed to a
 	// store/state-machine. These have previously been committed to stable
 	// store.
+	//todo 这个entry保存已提交的信息
 	CommittedEntries []pb.Entry
 
 	// Messages specifies outbound messages to be sent AFTER Entries are
 	// committed to stable storage.
 	// If it contains a MsgSnap message, the application MUST report back to raft
 	// when the snapshot has been received or has failed by calling ReportSnapshot.
+	//todo 这个消息载体，用于在raft内部流通
 	Messages []pb.Message
 
 	// MustSync indicates whether the HardState and Entries must be synchronously
 	// written to disk or if an asynchronous write is permissible.
+	//todo hardState需要立马写入磁盘，如果配置了这个参数
 	MustSync bool
 }
 
@@ -258,16 +267,19 @@ type msgWithResult struct {
 
 // node is the canonical implementation of the Node interface
 type node struct {
-	propc      chan msgWithResult // 接受上报消息
-	recvc      chan pb.Message    // 将应用层结果返回给raft
+	propc      chan msgWithResult // 接受应用层的上报消息给raft,外部消息
+	recvc      chan pb.Message    // 将应用层结果返回给raft, 主要是接收raft内部状态消息应用结果, 内部消息
 	confc      chan pb.ConfChangeV2
 	confstatec chan pb.ConfState
-	readyc     chan Ready // 这channel可以将raft的消息传给应用层
-	advancec   chan struct{}
-	tickc      chan struct{}
-	done       chan struct{}
-	stop       chan struct{}
-	status     chan chan Status
+	readyc     chan Ready    // 这channel可以将raft的消息返回给应用层
+	advancec   chan struct{} // 接收应用层的通知，告诉raft可以处理下一个消息了
+	tickc      chan struct{} // 接收应用层的心跳计时, 同时调用raft的心跳函数====>case <-n.tickc:  n.rn.Tick()
+	// 在处理中避免不了各种chan操作，此时如果Stop()被调用了，相应的阻塞就应该被激活，否则可能
+	// 面临死锁以后长时间退出后者永远无法退出。
+	done chan struct{}
+
+	stop   chan struct{}
+	status chan chan Status
 	// 一个rawnode中包含了一个raft。node是一个raft节点实例，对外提供一堆channel，让外部的调用可以写入消息和拿到消息的返回。
 	rn *RawNode
 }
@@ -404,6 +416,7 @@ func (n *node) run() {
 		case <-advancec:
 			// 交给RawNode处理消息
 			n.rn.Advance(rd)
+			// 开始接收新的消息
 			rd = Ready{}
 			advancec = nil
 		case c := <-n.status:
@@ -469,6 +482,7 @@ func (n *node) stepWait(ctx context.Context, m pb.Message) error {
 // if any.
 func (n *node) stepWithWaitOption(ctx context.Context, m pb.Message, wait bool) error {
 	if m.Type != pb.MsgProp {
+		// 不是上报消息走node.recvc
 		select {
 		case n.recvc <- m:
 			return nil
@@ -478,6 +492,7 @@ func (n *node) stepWithWaitOption(ctx context.Context, m pb.Message, wait bool) 
 			return ErrStopped
 		}
 	}
+	// 上报消息走node.propc->raft.Step
 	ch := n.propc
 	pm := msgWithResult{m: m}
 	if wait {
@@ -541,6 +556,7 @@ func (n *node) Status() Status {
 
 func (n *node) ReportUnreachable(id uint64) {
 	select {
+	// 应用层上报消息给raft
 	case n.recvc <- pb.Message{Type: pb.MsgUnreachable, From: id}:
 	case <-n.done:
 	}

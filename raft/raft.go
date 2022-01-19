@@ -251,7 +251,8 @@ type raft struct {
 
 	readStates []ReadState
 
-	// the log
+	//todo the log: 这里面保存了快照信息，当leader传给follower快照时
+	// raft首先将这个快照保存在raftlog中的unstable结构中，通过ready传给应用层，应用层基于这个信息去应用日志里面的操作
 	raftLog *raftLog
 
 	maxMsgSize         uint64
@@ -1579,6 +1580,7 @@ func (r *raft) handleSnapshot(m pb.Message) {
 // configuration of state machine. If this method returns false, the snapshot was
 // ignored, either because it was obsolete or because of an error.
 func (r *raft) restore(s pb.Snapshot) bool {
+	//todo 如果当前快照的Index小于本node的index，就忽略这个快照消息
 	if s.Metadata.Index <= r.raftLog.committed {
 		return false
 	}

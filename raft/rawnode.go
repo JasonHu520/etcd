@@ -132,6 +132,7 @@ func (rn *RawNode) Ready() Ready {
 // readyWithoutAccept returns a Ready. This is a read-only operation, i.e. there
 // is no obligation that the Ready must be handled.
 func (rn *RawNode) readyWithoutAccept() Ready {
+	// 这里可以jiang快照信息传给应用层
 	return newReady(rn.raft, rn.prevSoftSt, rn.prevHardSt)
 }
 
